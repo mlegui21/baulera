@@ -2048,3 +2048,417 @@ History shall include:
 - Quantity
 
 ---
+
+# 18 Audit & Activity History
+
+The Audit subsystem records every business operation performed within the application.
+
+Audit information is immutable and intended for traceability, diagnostics and accountability.
+
+Audit records are different from Inventory Movements.
+
+Inventory Movements describe changes in stock.
+
+Audit records describe changes made to the system.
+
+---
+
+## RF-121 Audit Record Creation
+
+**Priority**
+
+Critical
+
+### Description
+
+Every operation modifying business data shall create an Audit Record.
+
+### Operations Included
+
+- Product Creation
+- Product Update
+- Purchase
+- Consumption
+- Adjustment
+- Relocation
+- Shopping Item Update
+- Category Update
+- Location Update
+- Shelf Update
+
+---
+
+## RF-122 Audit Metadata
+
+**Priority**
+
+Critical
+
+Every Audit Record shall contain:
+
+- UUID
+- Timestamp (UTC)
+- User
+- Device Identifier
+- Entity
+- Entity Identifier
+- Action
+- Previous State
+- New State
+
+---
+
+## RF-123 Immutable Audit
+
+**Priority**
+
+Critical
+
+Audit Records shall never be edited or deleted.
+
+---
+
+## RF-124 Before and After Values
+
+**Priority**
+
+Critical
+
+Audit Records shall preserve the complete state before and after each modification.
+
+---
+
+## RF-125 Audit Search
+
+**Priority**
+
+Medium
+
+Users shall search Audit Records using:
+
+- User
+- Product
+- Date
+- Entity
+- Action
+
+---
+
+## RF-126 Audit Filters
+
+**Priority**
+
+Medium
+
+Supported filters:
+
+- Today
+- Yesterday
+- Last 7 Days
+- Last 30 Days
+- Custom Range
+
+---
+
+## RF-127 Product Activity Timeline
+
+**Priority**
+
+High
+
+Each Product shall expose a chronological activity timeline.
+
+Timeline includes:
+
+- Purchases
+- Consumptions
+- Relocations
+- Adjustments
+- Expirations
+
+---
+
+## RF-128 User Activity Timeline
+
+**Priority**
+
+Medium
+
+Users shall inspect operations performed by a specific Household member.
+
+---
+
+## RF-129 Household Activity Feed
+
+**Priority**
+
+High
+
+The application shall expose a Household Activity Feed ordered by timestamp.
+
+---
+
+## RF-130 Audit Export
+
+**Priority**
+
+Low
+
+Audit information may be exported to CSV.
+
+---
+
+# 19 Dashboard
+
+The Dashboard provides a high-level summary of the Household inventory.
+
+It is the default screen after authentication.
+
+---
+
+## RF-131 Dashboard Overview
+
+**Priority**
+
+Critical
+
+The Dashboard shall display:
+
+- Total Products
+- Total Inventory Units
+- Shopping List Count
+- Low Stock Count
+- Expiring Products
+- Recently Updated Products
+
+---
+
+## RF-132 Shopping Summary
+
+**Priority**
+
+Critical
+
+The Dashboard shall summarize current Shopping List.
+
+---
+
+## RF-133 Low Stock Summary
+
+**Priority**
+
+Critical
+
+The Dashboard shall display products below their Threshold.
+
+---
+
+## RF-134 Expiration Summary
+
+**Priority**
+
+Critical
+
+The Dashboard shall display products approaching expiration.
+
+---
+
+## RF-135 Recent Activity
+
+**Priority**
+
+High
+
+The Dashboard shall display the latest Household activity.
+
+Maximum items displayed:
+
+20
+
+---
+
+## RF-136 Quick Actions
+
+**Priority**
+
+Critical
+
+The Dashboard shall provide shortcuts for:
+
+- Register Purchase
+- Consume Product
+- Voice Command
+- Scan Barcode
+
+---
+
+## RF-137 Search Shortcut
+
+**Priority**
+
+Critical
+
+The Dashboard shall expose global search.
+
+---
+
+## RF-138 Dashboard Refresh
+
+**Priority**
+
+High
+
+Dashboard information shall automatically refresh whenever local inventory changes.
+
+---
+
+## RF-139 Dashboard Offline
+
+**Priority**
+
+Critical
+
+The Dashboard shall operate entirely using local data.
+
+Internet access shall not be required.
+
+---
+
+## RF-140 Dashboard Customization
+
+**Priority**
+
+Low
+
+Users may reorder Dashboard cards.
+
+---
+
+# 20 Statistics
+
+Statistics are generated entirely from Inventory Movements.
+
+Inventory quantities shall never be used directly for historical statistics.
+
+---
+
+## RF-141 Consumption Statistics
+
+**Priority**
+
+High
+
+The application shall calculate product consumption.
+
+Supported periods:
+
+- Week
+- Month
+- Year
+- Custom Range
+
+---
+
+## RF-142 Purchase Statistics
+
+**Priority**
+
+High
+
+The application shall calculate purchase frequency.
+
+---
+
+## RF-143 Most Consumed Products
+
+**Priority**
+
+High
+
+The application shall rank products by consumption quantity.
+
+---
+
+## RF-144 Least Consumed Products
+
+**Priority**
+
+Medium
+
+The application shall rank products with the lowest consumption.
+
+---
+
+## RF-145 Consumption by Category
+
+**Priority**
+
+High
+
+Consumption shall be aggregated by Product Category.
+
+---
+
+## RF-146 Expiration Statistics
+
+**Priority**
+
+Medium
+
+Statistics shall include:
+
+- Expired Products
+- Expired Quantity
+- Waste Percentage
+
+---
+
+## RF-147 Inventory Value
+
+**Priority**
+
+Low
+
+If purchase prices become available in future versions,
+
+the application shall calculate total inventory value.
+
+---
+
+## RF-148 Average Consumption Interval
+
+**Priority**
+
+Medium
+
+The application shall calculate the average time between consumptions of each Product.
+
+---
+
+## RF-149 Product Lifetime
+
+**Priority**
+
+Medium
+
+The application shall estimate how long a Product usually lasts before requiring replenishment.
+
+---
+
+## RF-150 Statistics Charts
+
+**Priority**
+
+High
+
+Statistics shall be presented using interactive charts.
+
+Minimum supported chart types:
+
+- Bar Chart
+- Line Chart
+- Pie Chart
+
+Charts shall operate entirely offline using locally available data.
+
+---
