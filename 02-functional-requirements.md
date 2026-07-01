@@ -3325,3 +3325,540 @@ Users may manually refresh remote changes independently of uploading local modif
 
 ---
 
+# 27 Administration & Configuration
+
+The Administration module allows users to configure application behavior without affecting historical information.
+
+---
+
+## RF-211 Application Settings
+
+**Priority**
+
+Medium
+
+### Description
+
+Users shall configure application preferences.
+
+### Configurable Settings
+
+- Language
+- Theme
+- Date Format
+- Time Format
+- Measurement Units
+- First Day of Week
+
+---
+
+## RF-212 Household Settings
+
+**Priority**
+
+Medium
+
+Household administrators shall configure shared settings.
+
+Examples
+
+- Household Name
+- Default Expiration Warning
+- Default Threshold
+- Default Target Quantity
+
+---
+
+## RF-213 Default Product Values
+
+**Priority**
+
+Medium
+
+Users may define default values applied when creating Products.
+
+Examples
+
+- Default Category
+- Default Location
+- Default Shelf
+
+---
+
+## RF-214 Backup Information
+
+**Priority**
+
+Low
+
+Users shall inspect synchronization and backup information.
+
+Displayed information includes
+
+- Last Synchronization
+- Local Database Version
+- Pending Queue Size
+- Last Successful Upload
+
+---
+
+## RF-215 Storage Usage
+
+**Priority**
+
+Low
+
+The application shall display storage usage.
+
+Examples
+
+- Images
+- Database
+- Cache
+
+---
+
+## RF-216 Import Data
+
+**Priority**
+
+Low
+
+Future versions may allow importing inventory from external files.
+
+Supported formats
+
+- CSV
+- JSON
+
+---
+
+## RF-217 Export Data
+
+**Priority**
+
+Medium
+
+Users shall export Household data.
+
+Supported formats
+
+- CSV
+- JSON
+
+Future versions
+
+- Excel
+- PDF
+
+---
+
+## RF-218 Reset Local Cache
+
+**Priority**
+
+Medium
+
+Users may delete local cached data.
+
+Business Rules
+
+- Remote information shall remain unaffected.
+- Next synchronization rebuilds local database.
+
+---
+
+## RF-219 About Screen
+
+**Priority**
+
+Low
+
+The application shall expose:
+
+- Version
+- Build Number
+- Database Version
+- Synchronization Engine Version
+- Open Source Licenses
+
+---
+
+## RF-220 Feature Flags
+
+**Priority**
+
+Medium
+
+Experimental functionality shall be controlled through Feature Flags.
+
+Disabled features shall remain invisible to end users.
+
+---
+
+# 28 OpenFoodFacts Integration
+
+OpenFoodFacts is the primary external source for product metadata.
+
+---
+
+## RF-221 Barcode Lookup
+
+**Priority**
+
+Critical
+
+The application shall retrieve product information using barcode lookup.
+
+Lookup order
+
+1. Local Database
+2. OpenFoodFacts
+
+---
+
+## RF-222 Imported Fields
+
+**Priority**
+
+Critical
+
+The following information shall be imported whenever available.
+
+- Product Name
+- Brand
+- Barcode
+- Product Image
+
+Optional
+
+- Categories
+- Ingredients
+- Nutrition Information
+
+Only the fields required by Baulera shall be persisted.
+
+---
+
+## RF-223 Local Override
+
+**Priority**
+
+Critical
+
+Local modifications shall always have priority over imported information.
+
+OpenFoodFacts shall never overwrite user-entered data automatically.
+
+---
+
+## RF-224 Missing Product
+
+**Priority**
+
+Critical
+
+If a barcode does not exist in OpenFoodFacts,
+
+the application shall automatically start the manual product creation workflow.
+
+---
+
+## RF-225 Image Download
+
+**Priority**
+
+Medium
+
+Product images may be downloaded and cached locally.
+
+---
+
+## RF-226 Background Refresh
+
+**Priority**
+
+Low
+
+Metadata may be refreshed in the background.
+
+Only fields that have never been manually edited may be updated.
+
+---
+
+## RF-227 External Service Failure
+
+**Priority**
+
+Critical
+
+Failure of OpenFoodFacts shall never interrupt normal application usage.
+
+Manual creation shall always remain available.
+
+---
+
+## RF-228 Offline Barcode Scan
+
+**Priority**
+
+Critical
+
+Barcode scanning shall work offline.
+
+If remote lookup is unavailable,
+
+the Product shall be created manually and enriched during a future synchronization.
+
+---
+
+## RF-229 Duplicate Prevention
+
+**Priority**
+
+Critical
+
+Products imported from OpenFoodFacts shall be matched against existing local Products.
+
+Duplicate Catalog entries shall never be created automatically.
+
+---
+
+## RF-230 External Metadata Version
+
+**Priority**
+
+Low
+
+The application may store metadata indicating when external product information was last retrieved.
+
+---
+
+# 29 Global Functional Requirements
+
+The following requirements apply across the entire application.
+
+---
+
+## RF-231 Undo Support
+
+**Priority**
+
+High
+
+Whenever possible,
+
+destructive operations shall support Undo.
+
+Undo generates compensating business operations rather than modifying history.
+
+---
+
+## RF-232 Soft Delete
+
+**Priority**
+
+Critical
+
+Business entities shall never be physically deleted.
+
+Supported entities
+
+- Products
+- Categories
+- Locations
+- Shelves
+
+Soft deletion preserves historical integrity.
+
+---
+
+## RF-233 UUID Usage
+
+**Priority**
+
+Critical
+
+Every business entity shall use UUID as its primary identifier.
+
+---
+
+## RF-234 Time Zone Handling
+
+**Priority**
+
+Critical
+
+All timestamps shall be stored internally using UTC.
+
+Presentation shall use the user's local timezone.
+
+---
+
+## RF-235 Immutable History
+
+**Priority**
+
+Critical
+
+Historical business information shall never be modified retroactively.
+
+Corrections are represented by new business events.
+
+---
+
+## RF-236 Event Generation
+
+**Priority**
+
+Critical
+
+Every inventory-affecting operation shall generate:
+
+- Inventory Movement
+- Audit Record
+- Synchronization Event
+
+---
+
+## RF-237 Household Isolation
+
+**Priority**
+
+Critical
+
+Household information shall be completely isolated.
+
+No Household shall access information belonging to another Household.
+
+---
+
+## RF-238 Local First Reads
+
+**Priority**
+
+Critical
+
+Every screen shall read data from the local database first.
+
+Remote services shall only synchronize data.
+
+---
+
+## RF-239 Event Sourcing Compatibility
+
+**Priority**
+
+Medium
+
+The domain model shall remain compatible with future migration to a complete Event Sourcing architecture.
+
+Current implementation is movement-based but preserves event semantics.
+
+---
+
+## RF-240 Extensibility
+
+**Priority**
+
+Critical
+
+The architecture shall allow introducing future modules without breaking existing functionality.
+
+Examples
+
+- Price Tracking
+- Budget Management
+- Recipes
+- AI Assistant
+- Smart Home Integration
+- Wearables
+- OCR
+- Image Recognition
+
+---
+
+# Functional Traceability
+
+| Module | RF Range |
+|---------|----------|
+| Authentication | RF-001 – RF-005 |
+| Household | RF-006 – RF-010 |
+| User Profile | RF-011 – RF-012 |
+| Product Catalog | RF-013 – RF-020 |
+| Categories | RF-021 – RF-024 |
+| Locations | RF-025 – RF-030 |
+| Inventory | RF-031 – RF-040 |
+| Purchases | RF-041 – RF-050 |
+| Inventory Movements | RF-051 – RF-060 |
+| Shopping List | RF-061 – RF-070 |
+| Barcode | RF-071 – RF-080 |
+| Search | RF-081 – RF-090 |
+| Product Detail | RF-091 – RF-100 |
+| Relocation | RF-101 – RF-110 |
+| Expiration | RF-111 – RF-120 |
+| Audit | RF-121 – RF-130 |
+| Dashboard | RF-131 – RF-140 |
+| Statistics | RF-141 – RF-150 |
+| Voice | RF-151 – RF-160 |
+| Artificial Intelligence | RF-161 – RF-170 |
+| Notifications | RF-171 – RF-180 |
+| Offline | RF-181 – RF-190 |
+| Synchronization | RF-191 – RF-200 |
+| Collaboration | RF-201 – RF-210 |
+| Administration | RF-211 – RF-220 |
+| OpenFoodFacts | RF-221 – RF-230 |
+| Global Requirements | RF-231 – RF-240 |
+
+---
+
+# Glossary
+
+| Term | Definition |
+|------|------------|
+| Household | Logical container that groups users, inventory and configuration. |
+| Catalog Product | Permanent definition of a product independent of inventory. |
+| Inventory Batch | Physical stock of a product sharing the same expiration date and location. |
+| Inventory Movement | Immutable event representing a stock change. |
+| Audit Record | Immutable record describing a business operation. |
+| Threshold | Minimum desired quantity before suggesting a purchase. |
+| Target Quantity | Desired quantity after replenishment. |
+| Shopping Item | Suggested or manually added purchase. |
+| Synchronization Event | Change pending replication between devices and backend. |
+| Offline Queue | Local queue containing unsynchronized events. |
+
+---
+
+# Acceptance Criteria
+
+The Functional Requirements Specification shall be considered complete when:
+
+- Every feature implemented in the application can be traced to at least one Functional Requirement.
+- Every Functional Requirement can be validated through testing.
+- Every Functional Requirement is represented in the Use Cases, Domain Model and Architecture documents.
+- No feature exists without a corresponding Functional Requirement.
+- No Functional Requirement contradicts another requirement in this specification.
+
+---
+
+# Summary
+
+**Total Functional Requirements:** 240
+
+**Functional Areas:** 25
+
+**Core Principles**
+
+- Offline First
+- Local Database as Source of Truth
+- Event-Based Inventory
+- Household Collaboration
+- Immutable History
+- Automatic Synchronization
+- AI as an Enhancement, Never a Dependency
+- Zero Silent Data Loss
+- Extensible Domain Model
+- Simple Daily Workflows
+
+---
+
