@@ -2462,3 +2462,486 @@ Minimum supported chart types:
 Charts shall operate entirely offline using locally available data.
 
 ---
+
+# 21 Voice Commands
+
+Voice interaction is a first-class feature of the application.
+
+Users should be able to perform the most common daily actions without touching the screen.
+
+The system shall prioritize natural language understanding over rigid command syntax.
+
+---
+
+## RF-151 Voice Recognition
+
+**Priority**
+
+High
+
+### Description
+
+The application shall allow users to dictate voice commands using the device microphone.
+
+### Business Rules
+
+- Recognition uses the native speech recognition service.
+- Internet connectivity shall not be required whenever the operating system provides offline speech recognition.
+- Voice recognition language follows the application language.
+
+---
+
+## RF-152 Natural Language
+
+**Priority**
+
+High
+
+The application shall understand natural language.
+
+Examples
+
+```
+I bought six Coke Zero.
+
+Take one milk.
+
+We finished the rice.
+
+Move the coffee to Shelf B.
+
+There are only two bottles of water left.
+
+I bought three packs of pasta that expire in December.
+```
+
+---
+
+## RF-153 Supported Intents
+
+**Priority**
+
+Critical
+
+The minimum supported intents are:
+
+- Register Purchase
+- Consume Product
+- Adjust Quantity
+- Move Product
+- Search Product
+- Open Shopping List
+- Show Statistics
+
+---
+
+## RF-154 Quantity Extraction
+
+**Priority**
+
+Critical
+
+The system shall extract quantities expressed naturally.
+
+Examples
+
+```
+one
+
+two
+
+half dozen
+
+twelve
+
+3
+
+```
+
+---
+
+## RF-155 Product Identification
+
+**Priority**
+
+Critical
+
+The system shall identify products using:
+
+- Exact Name
+- Similar Name
+- Brand
+- Historical Purchases
+- Historical Consumption
+
+---
+
+## RF-156 Ambiguous Commands
+
+**Priority**
+
+Critical
+
+If more than one product matches,
+
+the application shall request clarification.
+
+Example
+
+```
+Did you mean
+
+• Coke Zero 1.5L
+
+or
+
+• Coke Zero 500ml
+```
+
+---
+
+## RF-157 Voice Confirmation
+
+**Priority**
+
+High
+
+Potentially destructive operations shall require confirmation.
+
+Examples
+
+- Inventory Adjustment
+- Large Consumption
+- Delete Draft
+
+---
+
+## RF-158 Voice Feedback
+
+**Priority**
+
+Medium
+
+After successful execution,
+
+the application shall provide confirmation.
+
+Example
+
+```
+Three bottles of Coke Zero added successfully.
+```
+
+---
+
+## RF-159 Voice Error Handling
+
+**Priority**
+
+Medium
+
+If interpretation confidence is below the configured threshold,
+
+the command shall not be executed automatically.
+
+---
+
+## RF-160 Voice History
+
+**Priority**
+
+Low
+
+Voice commands may be stored locally for diagnostic purposes.
+
+Storage is optional and configurable.
+
+---
+
+# 22 Artificial Intelligence
+
+Artificial Intelligence enhances user experience but never replaces core business rules.
+
+The application must remain fully functional without AI services.
+
+---
+
+## RF-161 AI Intent Recognition
+
+**Priority**
+
+Medium
+
+AI may be used to interpret complex natural language.
+
+Business Rules
+
+- AI receives only the minimum information required.
+- Inventory data shall not be unnecessarily transmitted.
+
+---
+
+## RF-162 Product Suggestions
+
+**Priority**
+
+Medium
+
+When recognition confidence is low,
+
+AI may suggest the most probable Product.
+
+Suggestions shall consider:
+
+- Purchase History
+- Consumption History
+- Frequently Used Products
+
+---
+
+## RF-163 Smart Search
+
+**Priority**
+
+Medium
+
+AI may improve search relevance.
+
+Examples
+
+```
+cola
+
+↓
+
+Coca-Cola Zero 1.5L
+```
+
+---
+
+## RF-164 Purchase Suggestions
+
+**Priority**
+
+Low
+
+AI may suggest products commonly purchased together.
+
+Example
+
+```
+Coffee
+
+↓
+
+Sugar
+
+↓
+
+Milk
+```
+
+---
+
+## RF-165 Inventory Insights
+
+**Priority**
+
+Low
+
+AI may generate inventory insights.
+
+Examples
+
+- Unusual consumption
+- Frequently expired products
+- Products never consumed
+
+---
+
+## RF-166 Consumption Prediction
+
+**Priority**
+
+Low
+
+AI may estimate future consumption trends.
+
+---
+
+## RF-167 Privacy
+
+**Priority**
+
+Critical
+
+AI services shall never receive:
+
+- Authentication credentials
+- User passwords
+- Access tokens
+- Sensitive household information
+
+Only the minimum context necessary to perform the requested task may be transmitted.
+
+---
+
+## RF-168 AI Availability
+
+**Priority**
+
+Critical
+
+Failure of AI services shall never prevent normal application usage.
+
+---
+
+## RF-169 AI Transparency
+
+**Priority**
+
+High
+
+Whenever AI performs an interpretation,
+
+users shall be able to review the interpreted action before execution.
+
+---
+
+## RF-170 AI Configuration
+
+**Priority**
+
+Medium
+
+Users shall enable or disable AI-assisted features independently.
+
+---
+
+# 23 Notifications
+
+Notifications help users proactively manage inventory.
+
+---
+
+## RF-171 Expiration Notification
+
+**Priority**
+
+High
+
+Users shall receive notifications before products expire.
+
+Default warning:
+
+30 days
+
+Configurable.
+
+---
+
+## RF-172 Low Stock Notification
+
+**Priority**
+
+High
+
+Products reaching Threshold shall generate notifications.
+
+---
+
+## RF-173 Shopping Reminder
+
+**Priority**
+
+Medium
+
+The application may remind users that items remain on the Shopping List.
+
+---
+
+## RF-174 Synchronization Notification
+
+**Priority**
+
+Medium
+
+Synchronization failures shall generate notifications.
+
+---
+
+## RF-175 Household Activity Notification
+
+**Priority**
+
+Low
+
+Users may receive notifications when another Household member performs inventory changes.
+
+---
+
+## RF-176 Notification Preferences
+
+**Priority**
+
+High
+
+Users shall independently configure:
+
+- Expiration Notifications
+- Low Stock Notifications
+- Shopping Notifications
+- Synchronization Notifications
+- Household Activity Notifications
+
+---
+
+## RF-177 Quiet Hours
+
+**Priority**
+
+Medium
+
+Users may define Quiet Hours.
+
+Notifications shall be delayed until the configured period ends.
+
+---
+
+## RF-178 Notification History
+
+**Priority**
+
+Low
+
+The application shall keep a local history of generated notifications.
+
+---
+
+## RF-179 Notification Actions
+
+**Priority**
+
+Medium
+
+Notifications may expose quick actions.
+
+Examples
+
+- Register Purchase
+- Consume Product
+- Open Shopping List
+- View Product
+
+---
+
+## RF-180 Local Notifications
+
+**Priority**
+
+Critical
+
+Expiration and Threshold notifications shall work entirely offline using scheduled local notifications.
+
+---
+
