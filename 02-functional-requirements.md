@@ -1108,4 +1108,489 @@ Supported filters
 - Relocations
 - Expirations
 
+
+# 12 Shopping List
+
+The Shopping List is automatically generated from inventory status.
+
+It is not intended to be a manually maintained checklist, although manual additions are allowed.
+
+The Shopping List is continuously recalculated based on inventory thresholds and user actions.
+
 ---
+
+## RF-061 Automatic Shopping Suggestions
+
+**Priority**
+
+Critical
+
+### Description
+
+The system shall automatically suggest products for purchase whenever inventory reaches its configured threshold.
+
+### Business Rules
+
+- Suggestions are generated automatically.
+- Suggestions remain until resolved.
+- Suggestions update whenever inventory changes.
+
+### Acceptance Criteria
+
+Products appear automatically after reaching the threshold.
+
+---
+
+## RF-062 Product Threshold
+
+**Priority**
+
+Critical
+
+### Description
+
+Each Product shall define a minimum desired quantity (Threshold).
+
+### Business Rules
+
+- Threshold belongs to the Product definition.
+- Default Threshold = 0.
+- Threshold may be modified at any time.
+
+### Example
+
+```
+Product
+
+Milk
+
+Threshold
+
+3
+```
+
+---
+
+## RF-063 Target Quantity
+
+**Priority**
+
+Critical
+
+### Description
+
+Each Product shall define a Target Quantity.
+
+Target Quantity represents the preferred inventory level after shopping.
+
+### Example
+
+```
+Threshold
+
+3
+
+Target
+
+8
+```
+
+### Business Rules
+
+Target Quantity must be greater than or equal to Threshold.
+
+---
+
+## RF-064 Suggested Purchase Quantity
+
+**Priority**
+
+Critical
+
+### Description
+
+Suggested Quantity shall be automatically calculated.
+
+### Formula
+
+```
+Target Quantity
+
+-
+
+Current Stock
+
+=
+
+Suggested Purchase
+```
+
+### Example
+
+```
+Target
+
+8
+
+Current
+
+2
+
+↓
+
+Suggested
+
+6
+```
+
+---
+
+## RF-065 Stock Recalculation
+
+**Priority**
+
+Critical
+
+Whenever inventory changes,
+
+the Shopping List shall be recalculated automatically.
+
+---
+
+## RF-066 Shopping Item Status
+
+**Priority**
+
+High
+
+Shopping Items shall support the following states:
+
+- Suggested
+- Selected
+- Purchased
+- Ignored
+
+---
+
+## RF-067 Manual Shopping Item
+
+**Priority**
+
+Medium
+
+Users may manually add products to the Shopping List.
+
+Business Rules
+
+- Product may exist without affecting inventory.
+- Manual items remain until completed or removed.
+
+---
+
+## RF-068 Complete Shopping Item
+
+**Priority**
+
+Critical
+
+Users shall mark Shopping Items as purchased.
+
+Business Rules
+
+Completing an item shall immediately start the Purchase workflow.
+
+---
+
+## RF-069 Ignore Suggestion
+
+**Priority**
+
+Medium
+
+Users may ignore a suggestion.
+
+Ignored suggestions shall not reappear unless inventory changes again.
+
+---
+
+## RF-070 Shopping History
+
+**Priority**
+
+High
+
+Completed Shopping Items shall remain available historically.
+
+---
+
+# 13 Barcode Scanning
+
+The application shall support barcode scanning as the preferred method of product identification.
+
+---
+
+## RF-071 Scan Barcode
+
+**Priority**
+
+Critical
+
+Users shall scan product barcodes using the device camera.
+
+---
+
+## RF-072 Continuous Scan Mode
+
+**Priority**
+
+High
+
+The application shall support continuous barcode scanning.
+
+Business Rules
+
+- Multiple products may be scanned sequentially.
+- Camera remains open.
+- Confirmation occurs after each successful scan.
+
+---
+
+## RF-073 Barcode Lookup
+
+**Priority**
+
+Critical
+
+After scanning,
+
+the application shall search the Product Catalog.
+
+Lookup order:
+
+1. Local Database
+2. OpenFoodFacts
+3. Manual Creation
+
+---
+
+## RF-074 Existing Product Recognition
+
+**Priority**
+
+Critical
+
+If barcode already exists locally,
+
+the existing Product shall be reused.
+
+Duplicate Products shall never be created.
+
+---
+
+## RF-075 Unknown Barcode
+
+**Priority**
+
+Critical
+
+If barcode is unknown,
+
+the application shall retrieve product information from OpenFoodFacts.
+
+If unavailable,
+
+manual creation shall begin automatically.
+
+---
+
+## RF-076 Barcode Validation
+
+**Priority**
+
+Medium
+
+The application shall validate barcode format before processing.
+
+Supported formats depend on scanner capabilities.
+
+Examples
+
+- EAN-13
+- UPC-A
+- UPC-E
+
+---
+
+## RF-077 Duplicate Barcode Prevention
+
+**Priority**
+
+Critical
+
+Only one Product may own a specific barcode.
+
+Attempts to assign duplicated barcodes shall be rejected.
+
+---
+
+## RF-078 Manual Barcode Assignment
+
+**Priority**
+
+Medium
+
+Users may manually enter a barcode.
+
+---
+
+## RF-079 Barcode Editing
+
+**Priority**
+
+Medium
+
+Existing barcodes may be modified.
+
+Business Rules
+
+Uniqueness must remain enforced.
+
+---
+
+## RF-080 Barcode History
+
+**Priority**
+
+Low
+
+Barcode changes shall be recorded in Audit History.
+
+---
+
+# 14 Product Search
+
+The application shall provide fast product search.
+
+Search is expected to be the primary navigation mechanism.
+
+---
+
+## RF-081 Search by Name
+
+**Priority**
+
+Critical
+
+Users shall search products by name.
+
+Search shall begin while typing.
+
+---
+
+## RF-082 Search by Barcode
+
+**Priority**
+
+Critical
+
+Barcode values shall be searchable.
+
+---
+
+## RF-083 Search by Brand
+
+**Priority**
+
+Medium
+
+Users shall search products by Brand.
+
+---
+
+## RF-084 Search by Category
+
+**Priority**
+
+Medium
+
+Users shall filter products by Category.
+
+---
+
+## RF-085 Search by Location
+
+**Priority**
+
+Medium
+
+Users shall filter products by Location.
+
+---
+
+## RF-086 Search by Shelf
+
+**Priority**
+
+Medium
+
+Users shall filter products by Shelf.
+
+---
+
+## RF-087 Search by Expiration
+
+**Priority**
+
+Medium
+
+Users shall search inventory using expiration dates.
+
+Examples
+
+- Expired
+- Today
+- Next 7 days
+- Next 30 days
+
+---
+
+## RF-088 Favorites
+
+**Priority**
+
+Low
+
+Users may mark Products as favorites.
+
+Favorites shall appear first in search results.
+
+---
+
+## RF-089 Recently Used
+
+**Priority**
+
+High
+
+Recently consumed or purchased Products shall be prioritized in search results.
+
+---
+
+## RF-090 Intelligent Ranking
+
+**Priority**
+
+High
+
+Search results shall be ranked using the following priority:
+
+1. Exact match
+2. Recently used
+3. Frequently consumed
+4. Favorites
+5. Alphabetical order
+
+The ranking algorithm shall execute locally and work without Internet connectivity.
+
+---
+
