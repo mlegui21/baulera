@@ -2945,3 +2945,383 @@ Expiration and Threshold notifications shall work entirely offline using schedul
 
 ---
 
+
+# 24 Offline Operation
+
+Offline capability is a core architectural principle.
+
+The application shall remain fully functional without Internet connectivity.
+
+The local database is the primary data source.
+
+---
+
+## RF-181 Offline Availability
+
+**Priority**
+
+Critical
+
+### Description
+
+The application shall allow users to perform all daily inventory operations while offline.
+
+### Supported Offline Operations
+
+- Login using an existing session
+- Browse Products
+- Search Products
+- Register Purchases
+- Register Consumption
+- Inventory Adjustment
+- Product Relocation
+- Shopping List
+- Statistics
+- Dashboard
+- Barcode Scan (except remote lookup)
+- Notifications
+
+---
+
+## RF-182 Local Database
+
+**Priority**
+
+Critical
+
+The local database shall be the authoritative data source for the application.
+
+Remote services shall never be queried before consulting the local database.
+
+---
+
+## RF-183 Local Persistence
+
+**Priority**
+
+Critical
+
+Every modification shall be committed to the local database before synchronization.
+
+---
+
+## RF-184 Offline Product Creation
+
+**Priority**
+
+Critical
+
+Users shall create Products while offline.
+
+Synchronization shall occur automatically when connectivity returns.
+
+---
+
+## RF-185 Offline Purchase Registration
+
+**Priority**
+
+Critical
+
+Purchases shall be fully supported while offline.
+
+---
+
+## RF-186 Offline Consumption
+
+**Priority**
+
+Critical
+
+Consumption shall be fully supported while offline.
+
+---
+
+## RF-187 Offline Shopping List
+
+**Priority**
+
+Critical
+
+Shopping List shall remain available while offline.
+
+---
+
+## RF-188 Offline Statistics
+
+**Priority**
+
+Critical
+
+Statistics shall be generated exclusively from local data whenever Internet is unavailable.
+
+---
+
+## RF-189 Offline Search
+
+**Priority**
+
+Critical
+
+Product Search shall never require Internet connectivity.
+
+---
+
+## RF-190 Offline Queue
+
+**Priority**
+
+Critical
+
+Every modification performed while offline shall be placed into the Synchronization Queue.
+
+---
+
+# 25 Synchronization
+
+Synchronization guarantees eventual consistency between all Household devices.
+
+Synchronization shall occur automatically.
+
+---
+
+## RF-191 Automatic Synchronization
+
+**Priority**
+
+Critical
+
+The application shall automatically synchronize pending changes whenever connectivity becomes available.
+
+---
+
+## RF-192 Manual Synchronization
+
+**Priority**
+
+Medium
+
+Users may manually trigger synchronization.
+
+---
+
+## RF-193 Background Synchronization
+
+**Priority**
+
+High
+
+Synchronization shall occur in the background whenever possible.
+
+---
+
+## RF-194 Incremental Synchronization
+
+**Priority**
+
+Critical
+
+Only pending changes shall be synchronized.
+
+The complete database shall never be uploaded unnecessarily.
+
+---
+
+## RF-195 Bidirectional Synchronization
+
+**Priority**
+
+Critical
+
+Synchronization shall upload local changes and download remote changes during the same synchronization cycle.
+
+---
+
+## RF-196 Synchronization Order
+
+**Priority**
+
+Critical
+
+Synchronization shall preserve event order.
+
+Events generated earlier shall be synchronized first.
+
+---
+
+## RF-197 Synchronization Retry
+
+**Priority**
+
+Critical
+
+Failed synchronization attempts shall be retried automatically using exponential backoff.
+
+---
+
+## RF-198 Conflict Detection
+
+**Priority**
+
+Critical
+
+The synchronization engine shall detect conflicting modifications.
+
+Examples
+
+- Same Inventory Batch edited on multiple devices.
+- Same Product updated simultaneously.
+
+---
+
+## RF-199 Conflict Resolution
+
+**Priority**
+
+Critical
+
+Conflicts shall be resolved according to business rules.
+
+Resolution strategy:
+
+1. Merge when modifications affect different fields.
+2. Merge inventory operations when mathematically possible.
+3. Request user intervention only when automatic resolution is impossible.
+
+Data loss shall never occur silently.
+
+---
+
+## RF-200 Synchronization Status
+
+**Priority**
+
+High
+
+The application shall display synchronization status.
+
+Supported states:
+
+- Up to Date
+- Pending
+- Synchronizing
+- Conflict
+- Error
+
+---
+
+# 26 Realtime Collaboration
+
+Multiple Household members may use the application simultaneously.
+
+---
+
+## RF-201 Live Inventory Updates
+
+**Priority**
+
+High
+
+Inventory updates from other Household members shall appear automatically after synchronization.
+
+---
+
+## RF-202 Shopping List Updates
+
+**Priority**
+
+High
+
+Shopping List changes shall synchronize automatically across devices.
+
+---
+
+## RF-203 Activity Feed Updates
+
+**Priority**
+
+Medium
+
+Household Activity Feed shall refresh automatically when new movements are received.
+
+---
+
+## RF-204 Product Updates
+
+**Priority**
+
+Medium
+
+Product Catalog modifications shall propagate automatically.
+
+---
+
+## RF-205 Category Updates
+
+**Priority**
+
+Medium
+
+Category changes shall synchronize automatically.
+
+---
+
+## RF-206 Location Updates
+
+**Priority**
+
+Medium
+
+Location and Shelf modifications shall synchronize automatically.
+
+---
+
+## RF-207 Concurrent Usage
+
+**Priority**
+
+Critical
+
+Multiple users shall operate simultaneously without requiring manual synchronization.
+
+---
+
+## RF-208 Eventual Consistency
+
+**Priority**
+
+Critical
+
+Given successful synchronization,
+
+all Household devices shall converge to the same inventory state.
+
+---
+
+## RF-209 Synchronization Diagnostics
+
+**Priority**
+
+Medium
+
+Users shall inspect synchronization information.
+
+Minimum information:
+
+- Last Synchronization
+- Pending Events
+- Failed Events
+- Conflict Count
+
+---
+
+## RF-210 Remote Refresh
+
+**Priority**
+
+Medium
+
+Users may manually refresh remote changes independently of uploading local modifications.
+
+---
+
