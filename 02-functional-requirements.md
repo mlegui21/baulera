@@ -1592,5 +1592,459 @@ Search results shall be ranked using the following priority:
 
 The ranking algorithm shall execute locally and work without Internet connectivity.
 
+
+# 15 Product Detail
+
+The Product Detail screen is the central place to inspect a product, its current inventory, history and available actions.
+
 ---
 
+## RF-091 Product Detail
+
+**Priority**
+
+Critical
+
+### Description
+
+Users shall view complete information about a Product.
+
+### Information Displayed
+
+- Product Name
+- Brand
+- Presentation
+- Category
+- Barcode
+- Product Photo
+- Current Stock
+- Number of Batches
+- Threshold
+- Target Quantity
+
+### Acceptance Criteria
+
+The Product Detail screen loads in less than one second using local data.
+
+---
+
+## RF-092 Inventory Batches
+
+**Priority**
+
+Critical
+
+The Product Detail screen shall display every active Inventory Batch.
+
+Each batch displays:
+
+- Quantity
+- Expiration Date
+- Location
+- Shelf
+
+---
+
+## RF-093 Inventory Actions
+
+**Priority**
+
+Critical
+
+The Product Detail screen shall expose the following actions:
+
+- Consume
+- Register Purchase
+- Adjust Inventory
+- Relocate
+- View History
+
+---
+
+## RF-094 Batch Detail
+
+**Priority**
+
+Medium
+
+Users shall inspect the complete information of an Inventory Batch.
+
+---
+
+## RF-095 Batch Notes
+
+**Priority**
+
+Low
+
+Users may edit notes attached to an Inventory Batch.
+
+---
+
+## RF-096 Product Availability
+
+**Priority**
+
+Critical
+
+The application shall clearly indicate whether the Product is:
+
+- In Stock
+- Low Stock
+- Out of Stock
+
+---
+
+## RF-097 Product Status Color
+
+**Priority**
+
+Medium
+
+Product status shall use semantic colors.
+
+Example
+
+- Green → Available
+- Orange → Low Stock
+- Red → Out of Stock
+
+The actual color palette is defined in the Design System.
+
+---
+
+## RF-098 Expiration Indicator
+
+**Priority**
+
+Critical
+
+Products approaching expiration shall display a visual warning.
+
+Warning thresholds are configurable.
+
+---
+
+## RF-099 Batch Sorting
+
+**Priority**
+
+Medium
+
+Inventory Batches shall be sortable by:
+
+- Expiration
+- Quantity
+- Creation Date
+- Location
+
+---
+
+## RF-100 Product History Shortcut
+
+**Priority**
+
+High
+
+The Product Detail screen shall provide direct access to the complete movement history.
+
+---
+
+# 16 Product Relocation
+
+Inventory may be physically relocated without changing ownership.
+
+---
+
+## RF-101 Move Inventory
+
+**Priority**
+
+Critical
+
+Users shall move Inventory between Shelves.
+
+Business Rules
+
+Moving Inventory never creates a new Product.
+
+---
+
+## RF-102 Move Between Locations
+
+**Priority**
+
+Critical
+
+Inventory may move between Locations.
+
+Example
+
+```
+Storage Room
+
+↓
+
+Kitchen
+```
+
+---
+
+## RF-103 Partial Relocation
+
+**Priority**
+
+High
+
+Users may relocate only part of a Batch.
+
+Example
+
+```
+Current
+
+10
+
+↓
+
+Move 4
+
+↓
+
+Storage
+
+6
+
+Kitchen
+
+4
+```
+
+---
+
+## RF-104 Full Relocation
+
+**Priority**
+
+Critical
+
+Users may move an entire Batch.
+
+---
+
+## RF-105 Relocation History
+
+**Priority**
+
+Critical
+
+Every relocation shall generate an Inventory Movement.
+
+---
+
+## RF-106 Relocation Audit
+
+**Priority**
+
+Critical
+
+Audit records shall include:
+
+- Previous Location
+- Previous Shelf
+- New Location
+- New Shelf
+
+---
+
+## RF-107 Destination Validation
+
+**Priority**
+
+Critical
+
+Destination Shelf must belong to the selected Location.
+
+---
+
+## RF-108 Empty Shelf Support
+
+**Priority**
+
+Critical
+
+Inventory may be relocated to an empty Shelf.
+
+---
+
+## RF-109 Batch Merge
+
+**Priority**
+
+Medium
+
+If relocation creates two identical batches
+(same Product, Expiration, Location and Shelf),
+
+the system shall automatically merge them.
+
+---
+
+## RF-110 Relocation Undo
+
+**Priority**
+
+Medium
+
+Immediately after relocation,
+users may undo the operation.
+
+Undo creates a new Inventory Movement.
+
+---
+
+# 17 Expiration Management
+
+Expiration is tracked per Inventory Batch.
+
+---
+
+## RF-111 Expiration Date
+
+**Priority**
+
+Critical
+
+Every Inventory Batch may define an Expiration Date.
+
+Expiration Date is optional.
+
+---
+
+## RF-112 Expired Inventory
+
+**Priority**
+
+Critical
+
+Expired Inventory shall remain visible until consumed,
+discarded or adjusted.
+
+The system never removes expired inventory automatically.
+
+---
+
+## RF-113 Days Remaining
+
+**Priority**
+
+High
+
+The application shall calculate remaining days before expiration.
+
+---
+
+## RF-114 Expiration Warning
+
+**Priority**
+
+Critical
+
+Users shall receive warnings before expiration.
+
+Default warning period
+
+```
+30 days
+```
+
+Configurable.
+
+---
+
+## RF-115 Expired Status
+
+**Priority**
+
+Critical
+
+Expired Inventory shall display a distinct status.
+
+---
+
+## RF-116 Expiration Filters
+
+**Priority**
+
+Medium
+
+Users shall filter Inventory by:
+
+- Expired
+- Expires Today
+- Next 7 Days
+- Next 30 Days
+- Next 90 Days
+
+---
+
+## RF-117 Consume Expired Product
+
+**Priority**
+
+Medium
+
+The application shall allow consuming expired products after explicit confirmation.
+
+---
+
+## RF-118 Discard Expired Product
+
+**Priority**
+
+High
+
+Users shall discard expired inventory.
+
+Business Rules
+
+Discarding inventory creates:
+
+- Inventory Movement
+- Audit Record
+
+---
+
+## RF-119 Expiration Statistics
+
+**Priority**
+
+Medium
+
+Expired Inventory shall contribute to statistics.
+
+Examples
+
+- Products Expired
+- Quantity Lost
+- Expiration Rate
+
+---
+
+## RF-120 Expiration History
+
+**Priority**
+
+Medium
+
+The application shall permanently store expiration-related events.
+
+History shall include:
+
+- Product
+- Batch
+- User
+- Timestamp
+- Quantity
+
+---
