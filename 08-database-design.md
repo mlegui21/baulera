@@ -2342,4 +2342,1495 @@ Notification Evaluation
 
 ---
 
-# End of Part 5
+# 51 Index Strategy
+
+Indexes are designed to optimize the most common application queries.
+
+Priority is given to:
+
+- Product search
+- Inventory lookup
+- Expiration tracking
+- Shopping list generation
+- Synchronization
+- Statistics
+
+---
+
+## Primary Key Indexes
+
+Every table has a clustered primary key.
+
+```text
+PK_households
+
+PK_users
+
+PK_categories
+
+PK_brands
+
+PK_locations
+
+PK_shelves
+
+PK_products
+
+PK_product_images
+
+PK_product_barcodes
+
+PK_inventory_batches
+
+PK_inventory_movements
+
+PK_shopping_items
+
+PK_product_thresholds
+
+PK_audit_records
+
+PK_sync_events
+
+PK_notifications
+
+PK_user_settings
+
+PK_statistics_cache
+```
+
+---
+
+# 52 Secondary Indexes
+
+## Products
+
+```sql
+(name)
+
+(category_id)
+
+(brand_id)
+
+(barcode)
+
+(is_archived)
+
+(deleted_at)
+```
+
+---
+
+## Inventory Batches
+
+```sql
+(product_id)
+
+(expiration_date)
+
+(shelf_id)
+
+(quantity)
+
+(household_id)
+```
+
+---
+
+## Inventory Movements
+
+```sql
+(product_id)
+
+(created_at DESC)
+
+(user_id)
+
+(movement_type)
+```
+
+---
+
+## Shopping
+
+```sql
+(is_completed)
+
+(product_id)
+
+(household_id)
+```
+
+---
+
+## Notifications
+
+```sql
+(scheduled_for)
+
+(is_enabled)
+
+(is_delivered)
+```
+
+---
+
+## Synchronization
+
+```sql
+(status)
+
+(created_at)
+
+(entity_name)
+
+(device_id)
+```
+
+---
+
+# 53 Composite Indexes
+
+Frequently executed queries benefit from composite indexes.
+
+---
+
+## Products
+
+```sql
+(household_id, name)
+
+(household_id, barcode)
+
+(category_id, brand_id)
+```
+
+---
+
+## Inventory
+
+```sql
+(product_id, expiration_date)
+
+(product_id, shelf_id)
+
+(product_id, quantity)
+```
+
+---
+
+## Shopping
+
+```sql
+(household_id, is_completed)
+
+(product_id, is_completed)
+```
+
+---
+
+## Notifications
+
+```sql
+(is_enabled, scheduled_for)
+```
+
+---
+
+## Synchronization
+
+```sql
+(status, created_at)
+```
+
+---
+
+# 54 Database Constraints
+
+The database enforces integrity using constraints.
+
+---
+
+## Primary Keys
+
+All tables
+
+```sql
+PRIMARY KEY(id)
+```
+
+---
+
+## Foreign Keys
+
+Examples
+
+```sql
+product_id
+
+REFERENCES products(id)
+```
+
+```sql
+household_id
+
+REFERENCES households(id)
+```
+
+---
+
+## Check Constraints
+
+Examples
+
+Inventory quantity
+
+```sql
+quantity >= 0
+```
+
+Threshold
+
+```sql
+target_quantity > minimum_quantity
+```
+
+Retry count
+
+```sql
+retry_count >= 0
+```
+
+Expiration warning
+
+```sql
+expiration_warning_days >= 0
+```
+
+---
+
+## Unique Constraints
+
+Examples
+
+```sql
+(household_id, barcode)
+```
+
+```sql
+(household_id, category_name)
+```
+
+```sql
+(product_id)
+```
+
+```sql
+(user_id)
+```
+
+---
+
+# 55 Database Views
+
+Views simplify complex reporting queries.
+
+---
+
+## Current Inventory
+
+```text
+vw_current_inventory
+```
+
+Returns
+
+- Product
+- Total quantity
+- Available quantity
+- Shelf
+- Next expiration
+
+---
+
+## Shopping List
+
+```text
+vw_shopping_list
+```
+
+Returns
+
+Only pending shopping items.
+
+---
+
+## Expiring Products
+
+```text
+vw_expiring_products
+```
+
+Returns
+
+Products expiring within configurable days.
+
+---
+
+## Consumption History
+
+```text
+vw_consumption_history
+```
+
+Returns
+
+Consumption movements ordered by date.
+
+---
+
+## Dashboard Summary
+
+```text
+vw_dashboard_summary
+```
+
+Returns
+
+- Total products
+- Total batches
+- Products below threshold
+- Expiring products
+- Pending shopping items
+
+---
+
+# 56 Database Triggers
+
+Triggers keep the database internally consistent.
+
+---
+
+## Trigger
+
+Update Timestamp
+
+Executed
+
+Before Update
+
+Purpose
+
+Automatically update
+
+```
+updated_at
+```
+
+---
+
+## Trigger
+
+Increment Version
+
+Executed
+
+Before Update
+
+Purpose
+
+Increase
+
+```
+version
+```
+
+---
+
+## Trigger
+
+Audit Record
+
+Executed
+
+After Insert
+
+After Update
+
+After Delete
+
+Purpose
+
+Insert Audit Record.
+
+---
+
+## Trigger
+
+Shopping Evaluation
+
+Executed
+
+After Inventory Update
+
+Purpose
+
+Recalculate shopping list.
+
+---
+
+## Trigger
+
+Threshold Evaluation
+
+Executed
+
+After Inventory Update
+
+Purpose
+
+Evaluate threshold notifications.
+
+---
+
+## Trigger
+
+Notification Scheduling
+
+Executed
+
+After Batch Insert
+
+Purpose
+
+Schedule expiration notifications.
+
+---
+
+# 57 Stored Procedures
+
+The application performs almost all business logic.
+
+Stored procedures are intentionally minimal.
+
+---
+
+## sp_refresh_statistics
+
+Purpose
+
+Rebuild statistics cache.
+
+---
+
+## sp_recalculate_shopping
+
+Purpose
+
+Recompute automatic shopping list.
+
+---
+
+## sp_cleanup_notifications
+
+Purpose
+
+Remove obsolete notifications.
+
+---
+
+## sp_cleanup_sync_events
+
+Purpose
+
+Archive synchronized events.
+
+---
+
+# 58 Transactions
+
+All write operations execute inside transactions.
+
+Examples
+
+Purchase
+
+```text
+Insert Inventory Batch
+
+↓
+
+Insert Movement
+
+↓
+
+Update Shopping Item
+
+↓
+
+Insert Audit
+
+↓
+
+Insert Sync Event
+
+↓
+
+Commit
+```
+
+---
+
+Consumption
+
+```text
+Update Batch
+
+↓
+
+Insert Movement
+
+↓
+
+Evaluate Threshold
+
+↓
+
+Update Shopping
+
+↓
+
+Insert Audit
+
+↓
+
+Insert Sync Event
+
+↓
+
+Commit
+```
+
+---
+
+# 59 Performance Guidelines
+
+Expected workload
+
+- <100 products
+- <500 inventory batches
+- <100,000 movements
+
+The database is intentionally optimized for simplicity over extreme scalability.
+
+Performance goals
+
+| Operation | Target |
+|-----------|--------|
+| Product search | <50 ms |
+| Dashboard load | <100 ms |
+| Inventory update | <150 ms |
+| Shopping list | <100 ms |
+| Synchronization | Background |
+
+---
+
+# 60 Integrity Rules
+
+The database guarantees the following invariants.
+
+Inventory
+
+- Stock never negative.
+- Every stock modification generates a movement.
+
+Shopping
+
+- One Shopping Item per Product.
+- Threshold optional.
+
+Audit
+
+- Immutable.
+- Complete history.
+
+Synchronization
+
+- Every local modification creates one Sync Event.
+- Failed synchronization never loses data.
+
+Notifications
+
+- No duplicate pending expiration notification for the same batch.
+- Delivered notifications remain immutable.
+
+Database
+
+- Referential integrity enforced.
+- Soft deletion preserved.
+- UUID uniqueness guaranteed.
+
+---
+
+# 61 Drift Mapping
+
+SQLite persistence is implemented using **Drift**.
+
+Each business table has a corresponding Drift table.
+
+The logical schema mirrors PostgreSQL as closely as possible.
+
+```text
+PostgreSQL
+
+↓
+
+Drift Table
+
+↓
+
+DAO
+
+↓
+
+Repository
+
+↓
+
+Domain
+```
+
+The application never interacts directly with SQL.
+
+---
+
+# 62 Drift Project Structure
+
+```text
+lib/
+
+infrastructure/
+
+    database/
+
+        database.dart
+
+        migrations/
+
+        converters/
+
+        tables/
+
+        dao/
+
+        generated/
+```
+
+---
+
+## tables/
+
+Contains all Drift table definitions.
+
+```text
+households_table.dart
+
+users_table.dart
+
+categories_table.dart
+
+brands_table.dart
+
+locations_table.dart
+
+shelves_table.dart
+
+products_table.dart
+
+product_images_table.dart
+
+product_barcodes_table.dart
+
+inventory_batches_table.dart
+
+inventory_movements_table.dart
+
+shopping_items_table.dart
+
+product_thresholds_table.dart
+
+audit_records_table.dart
+
+sync_events_table.dart
+
+notifications_table.dart
+
+user_settings_table.dart
+
+statistics_cache_table.dart
+```
+
+---
+
+## dao/
+
+Contains Data Access Objects.
+
+Examples
+
+```text
+product_dao.dart
+
+inventory_dao.dart
+
+shopping_dao.dart
+
+notification_dao.dart
+
+sync_dao.dart
+```
+
+Each DAO is responsible for a single aggregate or closely related entities.
+
+---
+
+## converters/
+
+Custom type converters.
+
+Examples
+
+```text
+uuid_converter.dart
+
+json_converter.dart
+
+datetime_converter.dart
+```
+
+---
+
+## generated/
+
+Generated by Drift.
+
+Never edited manually.
+
+---
+
+# 63 Drift Table Mapping
+
+| PostgreSQL | Drift |
+|------------|-------|
+| UUID | Text |
+| TEXT | Text |
+| VARCHAR | Text |
+| BOOLEAN | Bool |
+| INTEGER | Int |
+| DECIMAL | Real |
+| DATE | DateTime |
+| TIMESTAMP | DateTime |
+| JSONB | Text (serialized JSON) |
+
+---
+
+# 64 DAO Responsibilities
+
+## ProductDao
+
+Responsible for
+
+- Product CRUD
+- Search
+- Barcode lookup
+
+---
+
+## InventoryDao
+
+Responsible for
+
+- Inventory batches
+- Inventory totals
+- Expiration queries
+
+---
+
+## ShoppingDao
+
+Responsible for
+
+- Shopping list
+- Threshold evaluation
+- Purchase completion
+
+---
+
+## NotificationDao
+
+Responsible for
+
+- Notification scheduling
+- Notification cleanup
+
+---
+
+## SyncDao
+
+Responsible for
+
+- Pending events
+- Retry queue
+- Conflict persistence
+
+---
+
+## StatisticsDao
+
+Responsible for
+
+- Cached statistics
+- Dashboard summaries
+
+---
+
+# 65 Migration Strategy
+
+Database schema versioning follows semantic migrations.
+
+Example
+
+```text
+Version 1
+
+↓
+
+Version 2
+
+↓
+
+Version 3
+```
+
+Each migration is incremental and idempotent.
+
+---
+
+## Migration Naming
+
+```text
+migration_001_initial.dart
+
+migration_002_products.dart
+
+migration_003_notifications.dart
+```
+
+---
+
+## Migration Rules
+
+- Never modify old migrations.
+- Create a new migration for every schema change.
+- Existing user data must always be preserved.
+- Migrations must execute automatically during app startup.
+
+---
+
+# 66 Initial Database Creation
+
+The first installation creates all tables in a single transaction.
+
+```text
+Create Tables
+
+↓
+
+Create Indexes
+
+↓
+
+Insert Default Categories
+
+↓
+
+Insert Default Settings
+
+↓
+
+Commit
+```
+
+If any step fails, the transaction is rolled back.
+
+---
+
+# 67 Seed Data
+
+The application initializes with default reference data.
+
+---
+
+## Categories
+
+Examples
+
+```text
+Drinks
+
+Dairy
+
+Snacks
+
+Frozen
+
+Cleaning
+
+Personal Care
+
+Canned Food
+
+Pasta
+
+Rice
+
+Breakfast
+
+Condiments
+```
+
+---
+
+## Locations
+
+```text
+Pantry
+```
+
+---
+
+## Shelves
+
+```text
+Shelf 1
+
+Shelf 2
+
+Shelf 3
+```
+
+Users can customize these values later.
+
+---
+
+# 68 Performance Guidelines
+
+SQLite optimization principles
+
+- Prefer indexed searches.
+- Minimize full-table scans.
+- Use transactions for batch operations.
+- Avoid unnecessary joins.
+- Cache frequently used queries.
+- Keep writes atomic.
+
+Expected local database size
+
+| Entity | Approximate Rows |
+|----------|-----------------:|
+| Products | <100 |
+| Inventory Batches | <300 |
+| Shopping Items | <100 |
+| Inventory Movements | <100,000 |
+| Audit Records | <100,000 |
+| Sync Events | <1,000 |
+| Notifications | <500 |
+
+These limits are well within SQLite's capabilities.
+
+---
+
+# 69 Backup and Recovery
+
+SQLite database is considered a local cache plus offline workspace.
+
+The authoritative shared copy resides in Supabase after synchronization.
+
+Recovery process
+
+```text
+Login
+
+↓
+
+Download Household
+
+↓
+
+Download Catalog
+
+↓
+
+Download Inventory
+
+↓
+
+Download Shopping
+
+↓
+
+Download Settings
+
+↓
+
+Rebuild Local Database
+```
+
+If synchronization metadata is inconsistent, a full household refresh may be requested.
+
+---
+
+# 70 Database Design Principles
+
+The database implementation adheres to the following principles.
+
+1. SQLite and PostgreSQL share the same logical model.
+2. Drift abstracts all SQL access.
+3. UUIDs are generated locally.
+4. Migrations are forward-only.
+5. Every write operation is transactional.
+6. Seed data is deterministic.
+7. Synchronization metadata is stored alongside business entities.
+8. DAOs expose persistence operations, never business logic.
+9. Generated code is isolated from handwritten code.
+10. The schema is designed for maintainability rather than premature optimization.
+
+---
+
+# 71 Complete Entity Relationship Diagram
+
+```mermaid
+erDiagram
+
+HOUSEHOLDS ||--o{ USERS : contains
+HOUSEHOLDS ||--o{ CATEGORIES : owns
+HOUSEHOLDS ||--o{ BRANDS : owns
+HOUSEHOLDS ||--o{ LOCATIONS : owns
+
+LOCATIONS ||--o{ SHELVES : contains
+
+CATEGORIES ||--o{ PRODUCTS : classifies
+BRANDS ||--o{ PRODUCTS : manufactures
+
+PRODUCTS ||--o{ PRODUCT_IMAGES : has
+PRODUCTS ||--o{ PRODUCT_BARCODES : has
+PRODUCTS ||--o{ INVENTORY_BATCHES : stores
+PRODUCTS ||--|| PRODUCT_THRESHOLDS : threshold
+PRODUCTS ||--|| SHOPPING_ITEMS : shopping
+PRODUCTS ||--o{ NOTIFICATIONS : generates
+
+SHELVES ||--o{ INVENTORY_BATCHES : stores
+
+INVENTORY_BATCHES ||--o{ INVENTORY_MOVEMENTS : history
+
+USERS ||--|| USER_SETTINGS : owns
+
+HOUSEHOLDS ||--o{ AUDIT_RECORDS : history
+HOUSEHOLDS ||--o{ SYNC_EVENTS : synchronization
+HOUSEHOLDS ||--o{ STATISTICS_CACHE : cache
+```
+
+---
+
+# 72 Aggregate Diagram
+
+The Domain Model is organized around Aggregate Roots.
+
+```text
+Household
+│
+├── Users
+│
+├── Categories
+│
+├── Brands
+│
+├── Locations
+│      └── Shelves
+│
+├── Products
+│      ├── Product Images
+│      ├── Product Barcodes
+│      ├── Threshold
+│      ├── Shopping Item
+│      └── Inventory Batches
+│             └── Inventory Movements
+│
+├── Notifications
+│
+├── User Settings
+│
+├── Audit Records
+│
+└── Sync Events
+```
+
+Aggregate boundaries must be respected by every Repository.
+
+---
+
+# 73 Data Flow
+
+## Purchase
+
+```text
+User
+
+↓
+
+Product
+
+↓
+
+Inventory Batch
+
+↓
+
+Inventory Movement
+
+↓
+
+Threshold Evaluation
+
+↓
+
+Shopping List Update
+
+↓
+
+Audit Record
+
+↓
+
+Sync Event
+```
+
+---
+
+## Consumption
+
+```text
+User
+
+↓
+
+Inventory Batch
+
+↓
+
+Inventory Movement
+
+↓
+
+Threshold Evaluation
+
+↓
+
+Shopping Item
+
+↓
+
+Notification Evaluation
+
+↓
+
+Audit Record
+
+↓
+
+Sync Event
+```
+
+---
+
+## Synchronization
+
+```text
+SQLite
+
+↓
+
+Sync Queue
+
+↓
+
+Supabase
+
+↓
+
+Realtime
+
+↓
+
+Other Devices
+
+↓
+
+SQLite
+```
+
+---
+
+# 74 Database Invariants
+
+The following rules must always hold true.
+
+## Products
+
+- A product always belongs to exactly one Household.
+- A product may exist with zero inventory.
+- A product may have multiple batches.
+- A product may have multiple images.
+- A product may have multiple barcodes.
+- A product has at most one threshold.
+- A product has at most one shopping item.
+
+---
+
+## Inventory
+
+- Quantity is never negative.
+- Inventory is tracked by batches.
+- Every inventory modification creates a movement.
+- Inventory movements are immutable.
+- Batch identity is determined by product, shelf and expiration date.
+
+---
+
+## Shopping
+
+- Shopping items are reusable.
+- Shopping items are never duplicated.
+- Shopping activation depends on threshold evaluation.
+
+---
+
+## Audit
+
+- Audit records are immutable.
+- Every business modification creates an audit record.
+
+---
+
+## Synchronization
+
+- Every local modification creates exactly one Sync Event.
+- Synchronization never modifies audit history.
+- Synchronization never bypasses business validation.
+
+---
+
+# 75 Design Decisions
+
+## DD-001
+
+UUIDs are generated on the device.
+
+Reason
+
+Offline support.
+
+---
+
+## DD-002
+
+Inventory is stored by batches.
+
+Reason
+
+Expiration management.
+
+---
+
+## DD-003
+
+Products remain even when quantity reaches zero.
+
+Reason
+
+Shopping list reuse.
+
+---
+
+## DD-004
+
+Inventory history is immutable.
+
+Reason
+
+Statistics and audit.
+
+---
+
+## DD-005
+
+Soft delete is preferred.
+
+Reason
+
+Historical consistency.
+
+---
+
+## DD-006
+
+SQLite is the runtime database.
+
+Reason
+
+Offline-first architecture.
+
+---
+
+## DD-007
+
+Supabase is the synchronization backend.
+
+Reason
+
+Shared household support.
+
+---
+
+## DD-008
+
+Statistics may be cached.
+
+Reason
+
+Fast dashboard loading.
+
+---
+
+## DD-009
+
+Notifications are persisted.
+
+Reason
+
+Reliable scheduling and recovery.
+
+---
+
+## DD-010
+
+Database schema remains normalized.
+
+Reason
+
+Consistency and maintainability.
+
+---
+
+# 76 Traceability Matrix
+
+| Database Area | Related Documents |
+|---------------|-------------------|
+| Vision | 01-vision.md |
+| Functional Requirements | 02-functional-requirements.md |
+| Non-Functional Requirements | 03-non-functional-requirements.md |
+| Domain Model | 04-domain-model.md |
+| Use Cases | 05-use-cases.md |
+| Architecture | 06-architecture.md |
+| Project Structure | 07-project-structure.md |
+| Supabase Integration | 09-supabase.md |
+| Offline Strategy | 10-offline-first.md |
+| Synchronization | 11-sync-engine.md |
+| Security | 12-security.md |
+| Notifications | 22-notifications.md |
+| Statistics | 18-statistics.md |
+
+---
+
+# 77 Database Checklist
+
+Every schema change should satisfy the following checklist.
+
+- Uses UUID primary keys.
+- Preserves referential integrity.
+- Includes synchronization metadata where applicable.
+- Includes audit support.
+- Uses soft delete for business entities.
+- Provides required indexes.
+- Avoids duplicated data.
+- Is compatible with Drift.
+- Is compatible with PostgreSQL.
+- Supports offline-first operation.
+
+---
+
+# 78 Glossary
+
+| Term | Definition |
+|------|------------|
+| Aggregate | A consistency boundary in the domain model. |
+| Audit Record | Immutable log of every business change. |
+| Batch | A quantity of a product sharing the same shelf and expiration date. |
+| Drift | SQLite ORM used by the Flutter application. |
+| Household | Logical owner of all business data. |
+| Inventory Movement | Immutable event representing a stock change. |
+| Product | Logical catalog item independent of stock. |
+| Shopping Item | Persistent entry in the automatic shopping list. |
+| Soft Delete | Logical deletion using `deleted_at`. |
+| Supabase | Cloud backend providing PostgreSQL, Auth and Realtime. |
+| Sync Event | Pending operation waiting to be synchronized. |
+| Threshold | Minimum stock level that triggers replenishment. |
+
+---
+
+# 79 Database Summary
+
+## Storage Strategy
+
+- SQLite is the local operational database.
+- PostgreSQL (Supabase) is the shared cloud database.
+- Both databases share the same logical schema.
+
+---
+
+## Data Model
+
+- Normalized to Third Normal Form (3NF).
+- UUID primary keys.
+- Explicit foreign keys.
+- Soft deletion for business entities.
+- Immutable historical records.
+
+---
+
+## Inventory Model
+
+- Products define the catalog.
+- Inventory is stored by batches.
+- Every stock modification generates an Inventory Movement.
+- Shopping List is generated from threshold evaluation.
+- Audit records preserve complete history.
+
+---
+
+## Architectural Principles
+
+1. Offline-first by default.
+2. SQLite as the runtime source of truth.
+3. Supabase used exclusively for synchronization and collaboration.
+4. Every business change is transactional.
+5. Every business change is auditable.
+6. Every business change is synchronizable.
+7. Historical information is never lost.
+8. Referential integrity is enforced at the database level.
+9. Performance is optimized for a family-sized inventory.
+10. The schema is designed to support future expansion without structural changes.
+
+---
+
+
