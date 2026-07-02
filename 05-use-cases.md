@@ -2838,3 +2838,434 @@ RF-231–RF-240
 
 ---
 
+# 4 Use Case Diagram (Mermaid)
+
+```mermaid
+flowchart LR
+
+User((Household Member))
+Admin((Administrator))
+System((System))
+OFF((OpenFoodFacts))
+AI((AI Provider))
+SB((Supabase))
+
+User --> UC001
+User --> UC002
+User --> UC003
+User --> UC004
+User --> UC005
+User --> UC007
+User --> UC008
+User --> UC009
+User --> UC010
+User --> UC011
+User --> UC017
+User --> UC018
+User --> UC019
+User --> UC020
+User --> UC021
+User --> UC022
+User --> UC023
+User --> UC024
+User --> UC025
+User --> UC026
+User --> UC027
+User --> UC028
+User --> UC029
+User --> UC030
+User --> UC037
+User --> UC039
+User --> UC040
+
+Admin --> UC006
+Admin --> UC012
+Admin --> UC013
+Admin --> UC014
+Admin --> UC015
+Admin --> UC016
+Admin --> UC038
+
+System --> UC031
+System --> UC032
+System --> UC033
+System --> UC034
+
+OFF --> UC019
+
+SB --> UC033
+SB --> UC035
+
+AI --> UC029
+AI --> UC030
+```
+
+---
+
+# 5 Main Business Flows
+
+## Daily Inventory Consumption
+
+```text
+Open Product
+
+↓
+
+Select Batch
+
+↓
+
+Consume Quantity
+
+↓
+
+Inventory Updated
+
+↓
+
+Movement Created
+
+↓
+
+Audit Created
+
+↓
+
+Threshold Evaluation
+
+↓
+
+Shopping List Updated
+
+↓
+
+Sync Queue
+```
+
+---
+
+## Register Purchase
+
+```text
+Search Product
+
+↓
+
+Scan Barcode (Optional)
+
+↓
+
+Product Exists?
+
+↓
+
+Yes ---------------- No
+
+↓                   ↓
+
+Register        Create Product
+
+↓
+
+Enter Quantity
+
+↓
+
+Enter Expiration
+
+↓
+
+Merge/Create Batch
+
+↓
+
+Movement
+
+↓
+
+Audit
+
+↓
+
+Shopping List Updated
+
+↓
+
+Synchronization
+```
+
+---
+
+## Automatic Shopping Suggestion
+
+```text
+Consume Inventory
+
+↓
+
+Current Stock
+
+↓
+
+Threshold Reached?
+
+↓
+
+No -------- Yes
+
+↓           ↓
+
+Finish   Calculate Suggested Quantity
+
+↓
+
+Create / Update Shopping Item
+
+↓
+
+Notify User
+```
+
+---
+
+## Synchronization
+
+```text
+Local Event
+
+↓
+
+Sync Queue
+
+↓
+
+Internet Available?
+
+↓
+
+No -------- Yes
+
+↓           ↓
+
+Wait      Upload Events
+
+↓
+
+Download Changes
+
+↓
+
+Conflict?
+
+↓
+
+No -------- Yes
+
+↓           ↓
+
+Finish   Resolve Conflict
+
+↓
+
+Finish
+```
+
+---
+
+# 6 Use Case Relationships
+
+| Use Case | Includes | Extends |
+|-----------|----------|---------|
+| UC-001 Register Purchase | UC-004 | UC-018 |
+| UC-002 Consume Product | — | UC-028 |
+| UC-003 Adjust Inventory | — | UC-037 |
+| UC-004 Create Product | UC-019 | — |
+| UC-005 Update Product | — | UC-037 |
+| UC-006 Archive Product | — | UC-038 |
+| UC-009 Shopping List | UC-010 | UC-011 |
+| UC-018 Barcode Scan | UC-019 | — |
+| UC-025 Dashboard | UC-026 | UC-021 |
+| UC-028 Voice Command | UC-029 | — |
+| UC-029 AI Interpretation | — | UC-030 |
+| UC-031 Low Stock Notification | UC-009 | — |
+| UC-032 Expiration Notification | UC-021 | — |
+| UC-033 Synchronization | UC-034 | — |
+
+---
+
+# 7 Functional Coverage
+
+| Functional Area | Use Cases |
+|-----------------|-----------|
+| Authentication | UC-035, UC-016 |
+| Household | UC-016 |
+| Products | UC-004, UC-005, UC-006, UC-008, UC-017, UC-018, UC-019, UC-023, UC-024, UC-038 |
+| Inventory | UC-001, UC-002, UC-003, UC-007, UC-020, UC-021, UC-022 |
+| Shopping List | UC-009, UC-010, UC-011 |
+| Categories | UC-012 |
+| Brands | UC-013 |
+| Locations | UC-014 |
+| Shelves | UC-015 |
+| Statistics | UC-025, UC-026, UC-027 |
+| Voice | UC-028 |
+| AI | UC-029, UC-030 |
+| Notifications | UC-031, UC-032 |
+| Synchronization | UC-033, UC-034 |
+| Audit | UC-037 |
+| Backup | UC-039, UC-040 |
+
+---
+
+# 8 Traceability Matrix
+
+| Use Case | Main RF Range |
+|-----------|---------------|
+| UC-001 | RF-041–050 |
+| UC-002 | RF-031–040 |
+| UC-003 | RF-031–040 |
+| UC-004 | RF-013–020 |
+| UC-005 | RF-013–020 |
+| UC-006 | RF-013–020 |
+| UC-007 | RF-101–110 |
+| UC-008 | RF-091–100 |
+| UC-009 | RF-061–070 |
+| UC-010 | RF-061–070 |
+| UC-011 | RF-061–070 |
+| UC-012 | RF-021–024 |
+| UC-013 | RF-013–020 |
+| UC-014 | RF-025–030 |
+| UC-015 | RF-025–030 |
+| UC-016 | RF-006–012 |
+| UC-017 | RF-081–090 |
+| UC-018 | RF-071–080 / RF-221–230 |
+| UC-019 | RF-221–230 |
+| UC-020 | RF-111–120 |
+| UC-021 | RF-111–120 / RF-171–180 |
+| UC-022 | RF-111–120 |
+| UC-023 | RF-081–090 / RF-161–170 |
+| UC-024 | RF-013–020 / RF-081–090 |
+| UC-025 | RF-181–190 |
+| UC-026 | RF-181–190 |
+| UC-027 | RF-181–190 |
+| UC-028 | RF-191–200 |
+| UC-029 | RF-201–210 |
+| UC-030 | RF-201–210 |
+| UC-031 | RF-171–180 |
+| UC-032 | RF-171–180 |
+| UC-033 | RF-231–240 |
+| UC-034 | RF-231–240 |
+| UC-035 | RF-001–012 |
+| UC-036 | RF-006–012 |
+| UC-037 | RF-151–160 |
+| UC-038 | RF-013–020 |
+| UC-039 | RF-231–240 |
+| UC-040 | RF-231–240 |
+
+---
+
+# 9 Cross-Cutting Concerns
+
+The following concerns apply to every Use Case unless explicitly stated otherwise.
+
+## Authentication
+
+Operations requiring synchronization require an authenticated user.
+
+---
+
+## Authorization
+
+Permissions are validated before executing administrative operations.
+
+---
+
+## Audit
+
+Every operation that modifies business data generates an immutable Audit Record.
+
+---
+
+## Synchronization
+
+Every successful write operation creates a pending Synchronization Event.
+
+---
+
+## Offline Operation
+
+All use cases, except those requiring external services (OpenFoodFacts, AI, invitation emails), execute without an Internet connection.
+
+---
+
+## Notifications
+
+Business operations may trigger notifications according to configured rules.
+
+---
+
+## Error Handling
+
+Business validation errors shall be displayed with clear, actionable messages.
+
+No operation may leave the domain in an inconsistent state.
+
+---
+
+# 10 Glossary
+
+| Term | Definition |
+|------|------------|
+| Use Case | Description of a business interaction between an actor and the system. |
+| Actor | Person or external system interacting with Baulera. |
+| Main Flow | Standard successful execution path. |
+| Alternative Flow | Valid variation of the main flow. |
+| Exception | Situation preventing successful completion. |
+| Postcondition | Guaranteed system state after execution. |
+| Business Rule | Mandatory domain constraint governing the use case. |
+
+---
+
+# 11 Summary
+
+## Total Use Cases
+
+| Category | Count |
+|----------|------:|
+| Inventory | 7 |
+| Product Catalog | 8 |
+| Shopping List | 3 |
+| Household Administration | 5 |
+| Search & Barcode | 3 |
+| Expiration | 3 |
+| Statistics & Dashboard | 3 |
+| Voice & AI | 3 |
+| Notifications | 2 |
+| Synchronization | 2 |
+| Audit & Backup | 2 |
+
+**Total Use Cases:** **40**
+
+---
+
+## Design Principles
+
+The complete set of Use Cases follows these principles:
+
+1. **Inventory operations are optimized for speed**, reflecting the two primary daily workflows:
+   - Consume Product
+   - Register Purchase
+
+2. **Offline-first execution** is the default. External services enrich the experience but never block core functionality.
+
+3. **Every inventory change is fully traceable** through Inventory Movements, Audit Records and Synchronization Events.
+
+4. **The Shopping List is automatically derived** from inventory state and thresholds, eliminating manual maintenance.
+
+5. **Products are permanent catalog entities**, remaining available even when stock reaches zero.
+
+6. **Voice commands and AI are assistive capabilities**, never replacing deterministic business logic.
+
+7. **Every Use Case maps directly to Functional Requirements and the Domain Model**, ensuring complete traceability from business needs to implementation.
+
+---
+
