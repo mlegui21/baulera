@@ -1,10 +1,10 @@
 # Baulera - Evolution Log
 
-**Document:** 28-evolution-log.md  
-**Type:** Append-only system change specification  
+**Document:** 28-evolution-log.md
+**Type:** Append-only system change specification
 **Scope:** Complete implementation changes (not just conceptual tracking)
 
-This document is the single source of truth for *incremental system modifications*.  
+This document is the single source of truth for *incremental system modifications*.
 Each entry is a **concentrated patch specification** describing exactly what must be added/changed across the existing 01–27 documents.
 
 ---
@@ -12,6 +12,7 @@ Each entry is a **concentrated patch specification** describing exactly what mus
 # 1. Evolution Principles
 
 ## EP-001 — Full Patch Specification
+
 Each entry MUST describe:
 
 - New concepts
@@ -25,19 +26,19 @@ Each entry MUST describe:
 ---
 
 ## EP-002 — No Partial Descriptions
-Entries are not summaries.  
+
+Entries are not summaries.
 They are **implementation-ready change sets**.
 
 ---
 
 ## EP-003 — Backward Compatibility
+
 Core documents (01–27) remain unchanged except where explicitly indicated.
 
 ---
 
 # 2. [2026-07] Store Scan Mode + Purchase Session System
-
----
 
 ## 2.1 Summary
 
@@ -53,8 +54,11 @@ This introduces a new domain stage:
 Scan → Purchase Session → Pending Placement → Inventory
 ```
 
-2.2 NEW DOMAIN CONCEPTS (04-domain-model.md update)
-ADD: PurchaseSession Aggregate
+## 2.2 New Domain Concepts (04-domain-model.md update)
+
+### ADD: `PurchaseSession` Aggregate
+
+```text
 PurchaseSession
 - id: UUID
 - householdId: UUID
@@ -63,7 +67,11 @@ PurchaseSession
 - startedAt: timestamp
 - endedAt: timestamp
 - items: PurchaseSessionItem[]
-ADD: PurchaseSessionItem
+```
+
+### ADD: `PurchaseSessionItem`
+
+```text
 PurchaseSessionItem
 - id: UUID
 - sessionId: UUID
@@ -72,50 +80,78 @@ PurchaseSessionItem
 - quantity: decimal
 - state: Scanned | Purchased | PendingPlacement | Completed
 - createdAt: timestamp
-ADD: New Domain State (ShoppingItem extension)
-PendingPlacement
+```
+
+### ADD: New Domain State (ShoppingItem extension)
+
+**`PendingPlacement`**
 
 Represents:
 
-Purchased in store
-Not yet assigned storage location in Baulera
-UPDATE: Shopping Item Lifecycle (17-shopping-list.md)
+- Purchased in store
+- Not yet assigned storage location in Baulera
+
+### UPDATE: Shopping Item Lifecycle (17-shopping-list.md)
 
 Replace lifecycle with:
 
+```text
 Suggested → Added → Active → Purchased → PendingPlacement → Completed
-2.3 USE CASE ADDITION (05-use-cases.md)
-ADD UC-SH-09: Store Scan Mode Shopping
+```
 
-Actor: User
-Context: Supermarket
+---
 
-Flow:
-User enters Store Scan Mode
-User scans product repeatedly
-System resolves product using local-first strategy
-Item is added to Purchase Session
-Item is marked as Purchased
-Item enters PendingPlacement state
-Session is stored locally or synced later
-User later assigns storage location at home
-Postconditions:
-Purchase recorded
-Inventory NOT updated yet
-Items remain in PendingPlacement
-2.4 ARCHITECTURE CHANGES (06-architecture.md)
-ADD: PurchaseSession Service (Application Layer)
+## 2.3 Use Case Addition (05-use-cases.md)
+
+### ADD UC-SH-09: Store Scan Mode Shopping
+
+**Actor:** User
+**Context:** Supermarket
+
+**Flow:**
+
+1. User enters Store Scan Mode
+2. User scans product repeatedly
+3. System resolves product using local-first strategy
+4. Item is added to Purchase Session
+5. Item is marked as Purchased
+6. Item enters PendingPlacement state
+7. Session is stored locally or synced later
+8. User later assigns storage location at home
+
+**Postconditions:**
+
+- Purchase recorded
+- Inventory NOT updated yet
+- Items remain in PendingPlacement
+
+---
+
+## 2.4 Architecture Changes (06-architecture.md)
+
+### ADD: PurchaseSession Service (Application Layer)
+
+```text
 PurchaseSessionService
 - createSession()
 - addScannedItem()
 - closeSession()
 - reconcileSession()
-ADD: New Bounded Context behavior
-Shopping List → Intent layer
-Purchase Session → Execution layer (real-world acquisition)
-Inventory → Final state layer
-2.5 DATABASE CHANGES (08-database-design.md)
-ADD TABLE: purchase_sessions
+```
+
+### ADD: New Bounded Context Behavior
+
+- Shopping List → Intent layer
+- Purchase Session → Execution layer (real-world acquisition)
+- Inventory → Final state layer
+
+---
+
+## 2.5 Database Changes (08-database-design.md)
+
+### ADD TABLE: `purchase_sessions`
+
+```sql
 CREATE TABLE purchase_sessions (
   id UUID PRIMARY KEY,
   household_id UUID NOT NULL,
@@ -125,7 +161,11 @@ CREATE TABLE purchase_sessions (
   ended_at TIMESTAMP NULL,
   created_at TIMESTAMP DEFAULT NOW()
 );
-ADD TABLE: purchase_session_items
+```
+
+### ADD TABLE: `purchase_session_items`
+
+```sql
 CREATE TABLE purchase_session_items (
   id UUID PRIMARY KEY,
   session_id UUID REFERENCES purchase_sessions(id),
@@ -135,135 +175,181 @@ CREATE TABLE purchase_session_items (
   state TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT NOW()
 );
-UPDATE: Inventory update rule
+```
+
+### UPDATE: Inventory Update Rule
 
 Inventory MUST NOT be updated at scan time.
 
 Inventory updates occur ONLY when:
 
+```text
 PendingPlacement → Completed
-2.6 SYNC ENGINE CHANGES (11-sync-engine.md)
-ADD EVENT TYPES
-PurchaseSessionCreated
-PurchaseSessionItemScanned
-PurchaseSessionItemUpdated
-PurchaseSessionCompleted
-ProductPlacementConfirmed
-ADD RULE: Session grouping
+```
+
+---
+
+## 2.6 Sync Engine Changes (11-sync-engine.md)
+
+### ADD EVENT TYPES
+
+- `PurchaseSessionCreated`
+- `PurchaseSessionItemScanned`
+- `PurchaseSessionItemUpdated`
+- `PurchaseSessionCompleted`
+- `ProductPlacementConfirmed`
+
+### ADD RULE: Session Grouping
 
 All scan events MUST:
 
-Belong to a session
-Preserve order
-Be replayable offline
-Be applied atomically when possible
-ADD RULE: PendingPlacement consistency
+- Belong to a session
+- Preserve order
+- Be replayable offline
+- Be applied atomically when possible
+
+### ADD RULE: PendingPlacement Consistency
 
 PendingPlacement items MUST NOT:
 
-Modify inventory
-Trigger consumption events
-Trigger statistics updates until finalized
-2.7 OFFLINE-FIRST CHANGES (10-offline-first.md)
-ADD RULE: Scan resolution priority
+- Modify inventory
+- Trigger consumption events
+- Trigger statistics updates until finalized
+
+---
+
+## 2.7 Offline-First Changes (10-offline-first.md)
+
+### ADD RULE: Scan Resolution Priority
+
 1. Local product DB
 2. Local cached metadata
 3. External API (online only)
 4. Minimal fallback product
-ADD RULE: Offline scan behavior
-Sessions can be created offline
-Items can be scanned offline
-Sync preserves session structure exactly
-No loss of scan order allowed
-2.8 PRODUCTS MODULE CHANGES (16-products.md)
-MODIFY: Barcode workflow
+
+### ADD RULE: Offline Scan Behavior
+
+- Sessions can be created offline
+- Items can be scanned offline
+- Sync preserves session structure exactly
+- No loss of scan order allowed
+
+---
+
+## 2.8 Products Module Changes (16-products.md)
+
+### MODIFY: Barcode Workflow
 
 Replace existing barcode flow with:
 
+```text
 Scan Barcode
 → Local lookup (priority)
 → If found → open product
 → If not found:
    → minimal product OR deferred enrichment
-ADD: Store Scan Mode behavior
-Scanned items in store belong to PurchaseSession
-They are NOT immediately inventory updates
-They remain PendingPlacement until confirmed at home
-2.9 SHOPPING LIST CHANGES (17-shopping-list.md)
-ADD: new state
-PendingPlacement
-MODIFY lifecycle
+```
+
+### ADD: Store Scan Mode Behavior
+
+- Scanned items in store belong to PurchaseSession
+- They are NOT immediately inventory updates
+- They remain PendingPlacement until confirmed at home
+
+---
+
+## 2.9 Shopping List Changes (17-shopping-list.md)
+
+### ADD: New State
+
+- `PendingPlacement`
+
+### MODIFY: Lifecycle
+
+```text
 Suggested → Added → Active → Purchased → PendingPlacement → Completed
-ADD RULE
+```
+
+### ADD RULE
 
 Shopping List MUST NOT directly update inventory when Store Scan Mode is active.
 
-2.10 UI/UX CHANGES (14-ui-ux.md)
-ADD SCREEN: Store Scan Mode
+---
 
-Features:
+## 2.10 UI/UX Changes (14-ui-ux.md)
 
-Continuous barcode scanning
-Session-based grouping
-No navigation interruptions
-Lightweight confirmations
-Session summary screen
-UX RULE
-No modal interruptions during scan mode
-Single-tap scan repetition
-Batch review at session end
-2.11 SECURITY / INTEGRITY RULES (12-security.md implicit update)
-ADD RULE
+### ADD SCREEN: Store Scan Mode
+
+**Features:**
+
+- Continuous barcode scanning
+- Session-based grouping
+- No navigation interruptions
+- Lightweight confirmations
+- Session summary screen
+
+**UX Rule:**
+
+- No modal interruptions during scan mode
+- Single-tap scan repetition
+- Batch review at session end
+
+---
+
+## 2.11 Security / Integrity Rules (12-security.md implicit update)
+
+### ADD RULE
 
 PurchaseSession events:
 
-Must be immutable after sync
-Must preserve audit trail
-Must prevent duplicate inventory application
-2.12 BUSINESS RULES SUMMARY
-BR-PS-001
+- Must be immutable after sync
+- Must preserve audit trail
+- Must prevent duplicate inventory application
 
-PurchaseSession groups all store scans.
+---
 
-BR-PS-002
+## 2.12 Business Rules Summary
 
-Inventory is NOT updated during scanning.
+| ID | Rule |
+|----|------|
+| BR-PS-001 | PurchaseSession groups all store scans. |
+| BR-PS-002 | Inventory is NOT updated during scanning. |
+| BR-PS-003 | PendingPlacement is mandatory before final inventory update. |
+| BR-PS-004 | Local product resolution is always prioritized. |
+| BR-PS-005 | External APIs are optional enrichment only. |
+| BR-PS-006 | Scan order must never be lost across sync. |
 
-BR-PS-003
+---
 
-PendingPlacement is mandatory before final inventory update.
+# 3. [2026-07] Barcode Resolution Enhancement
 
-BR-PS-004
-
-Local product resolution is always prioritized.
-
-BR-PS-005
-
-External APIs are optional enrichment only.
-
-BR-PS-006
-
-Scan order must never be lost across sync.
-
-3. [2026-07] Barcode Resolution Enhancement
-3.1 Summary
+## 3.1 Summary
 
 Enforces strict local-first barcode resolution strategy.
 
-3.2 CHANGE: Resolution priority
+## 3.2 Change: Resolution Priority
+
 1. Local DB
 2. Cached metadata
 3. OpenFoodFacts (online only)
 4. Fallback product creation
-3.3 IMPACTED MODULES
-10-offline-first.md
-16-products.md
-3.4 RULE
+
+## 3.3 Impacted Modules
+
+- 10-offline-first.md
+- 16-products.md
+
+## 3.4 Rule
 
 Barcode scanning must NEVER depend on external APIs when local match exists.
 
-4. SYSTEM-WIDE IMPACT SUMMARY
-New System Flow
+---
+
+# 4. System-Wide Impact Summary
+
+### New System Flow
+
+```text
 SCAN
   ↓
 PurchaseSession
@@ -271,26 +357,37 @@ PurchaseSession
 PendingPlacement
   ↓
 Inventory Finalization
-New System Capabilities
-Supermarket continuous scanning
-Offline scan reliability
-Deferred inventory assignment
-Session-based purchase tracking
-Strict separation of purchase vs storage
-5. STATUS
-Feature	Status
-PurchaseSession	Defined
-Store Scan Mode	Defined
-PendingPlacement	Defined
-Barcode Enhancement	Defined
-6. FINAL NOTE
+```
+
+### New System Capabilities
+
+- Supermarket continuous scanning
+- Offline scan reliability
+- Deferred inventory assignment
+- Session-based purchase tracking
+- Strict separation of purchase vs storage
+
+---
+
+# 5. Status
+
+| Feature | Status |
+|---------|--------|
+| PurchaseSession | Defined |
+| Store Scan Mode | Defined |
+| PendingPlacement | Defined |
+| Barcode Enhancement | Defined |
+
+---
+
+# 6. Final Note
 
 This evolution log is not descriptive.
 
 It is an implementation contract that fully specifies:
 
-what must be added
-where it must be added
-how existing systems change
-how data flows are modified
-how offline + sync behave
+- what must be added
+- where it must be added
+- how existing systems change
+- how data flows are modified
+- how offline + sync behave
