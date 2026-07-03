@@ -1,279 +1,174 @@
 # Baulera
 
-**Document:** 18-statistics.md  
-**Title:** Statistics Module  
-**Version:** 1.0  
+**Document:** 18-statistics.md
+
+**Title:** Statistics Module
+
+**Version:** 1.0
 
 ---
 
-# 1. Purpose
+# 1 Purpose
 
-The Statistics module provides insights into:
+The Statistics module defines how Baulera transforms raw product, inventory, shopping, and consumption events into meaningful insights.
 
-- Consumption behavior
-- Shopping patterns
-- Inventory usage
-- Household trends
-- Product lifecycle efficiency
+It aggregates domain events into structured metrics that help users understand:
 
-It transforms raw events into meaningful aggregated metrics.
+- Consumption patterns
+- Purchase behavior
+- Inventory efficiency
+- Waste reduction
+- Cost trends
+- Household usage habits
 
 ---
 
-# 2. Scope
+# 2 Objectives
+
+The Statistics module must:
+
+- Provide real-time and historical insights.
+- Operate fully offline using local aggregation.
+- Synchronize aggregated and raw data consistently.
+- Support flexible filtering (time, category, product).
+- Enable dashboard and reporting features.
+- Remain performant at large data scale.
+
+---
+
+# 3 Scope
 
 Included:
 
-- Consumption analytics
-- Shopping frequency analysis
-- Product usage statistics
-- Inventory turnover
-- Category-based insights
-- Time-based trends
+- Consumption statistics
+- Purchase statistics
+- Inventory trends
+- Expiration and waste tracking
+- Category-based analytics
+- Product-level analytics
+- Household-level analytics
+- Time-based aggregation
 
 Not included:
 
-- Financial reporting
-- External market analysis
-- Predictive AI recommendations (handled in AI module)
+- External financial integrations
+- Banking or payment analysis
+- Predictive financial modeling (future AI module)
 
 ---
 
-# 3. Data Sources
+# 4 Domain Model
 
-Statistics are derived from event streams:
-
-- Inventory events
-- Shopping List events
-- Purchase events
-- Product lifecycle events
-- Sync engine events
-
-All statistics MUST be event-driven.
-
----
-
-# 4. Core Metrics
-
-## 4.1 Consumption Rate
-
-Measures how fast products are consumed.
+Statistics are derived from domain events:
 
 ```text
-Consumption Rate = Units consumed / Time period
+Product Events
+Shopping Events
+Inventory Events
+Batch Events
+```
+
+These events are aggregated into:
+
+```text
+Statistic Records
+Aggregates
+KPI Metrics
+Time Series Data
 ```
 
 ---
 
-## 4.2 Purchase Frequency
+# 5 Statistics Philosophy
 
-How often items are added to shopping list or purchased.
+The Statistics module follows strict principles:
 
-- Weekly
-- Monthly
-- Category-based frequency
-
----
-
-## 4.3 Inventory Turnover
-
-Tracks how quickly inventory is replaced.
-
-```text
-Turnover = Purchases / Average Stock
-```
+- Statistics are derived, never manually entered.
+- Raw events are the source of truth.
+- Aggregations are reproducible.
+- Offline calculations must match server results.
+- No loss of granularity at the source level.
 
 ---
 
-## 4.4 Waste Indicators
+# 6 Core Entities
 
-Identifies inefficiencies:
+## 6.1 Statistic
 
-- Expired products
-- Over-purchased items
-- Unused stock
+Represents an aggregated metric.
 
----
+Attributes:
 
-# 5. Aggregation Model
-
-Statistics are computed using:
-
-- Event streams (primary source)
-- Cached aggregates (performance layer)
-- Periodic recomputation jobs
-
-Rules:
-
-- Raw events are immutable
-- Aggregates are derived and replaceable
-- Recalculation must not lose historical fidelity
+- StatisticId
+- HouseholdId
+- Type
+- Scope
+- Value
+- TimeRange
+- GeneratedAt
 
 ---
 
-# 6. Time Windows
+## 6.2 Metric Types
 
-Statistics can be computed over:
+| Type | Description |
+|------|-------------|
+| Consumption | Quantity used |
+| Purchase | Quantity acquired |
+| Waste | Expired or discarded items |
+| Inventory | Current stock levels |
+| Frequency | Usage patterns |
+| Cost | Spending data (optional) |
+
+---
+
+## 6.3 Time Granularity
+
+Supported time ranges:
 
 - Daily
 - Weekly
 - Monthly
 - Yearly
-- Custom ranges
+- Custom range
 
-Time windows are always configurable.
-
----
-
-# 7. Category-Based Analytics
-
-All metrics can be grouped by category:
-
-- Food
-- Dairy
-- Cleaning
-- Personal Care
-- Household
-
-Category segmentation enables behavioral insights.
+Granularity depends on query type and performance constraints.
 
 ---
 
-# 8. Product-Level Analytics
+# 7 Aggregation Model
 
-Each product tracks:
-
-- Total consumption
-- Purchase frequency
-- Average interval between purchases
-- Stock depletion rate
-
-Example:
+Statistics are computed using a layered aggregation model:
 
 ```text
-Milk:
-- Bought: 12 times/month
-- Consumed: 3L/week
-- Average lifespan: 4 days
+Raw Events
+   ↓
+Local Aggregation
+   ↓
+Cached Metrics
+   ↓
+Server Aggregation
+   ↓
+Final Reports
 ```
 
----
-
-# 9. Shopping Behavior Metrics
-
-Derived from Shopping List:
-
-- Items added per session
-- Suggestion acceptance rate
-- Manual vs suggested ratio
-- Pending items ratio
-- Purchase conversion rate
+Each layer improves performance while preserving correctness.
 
 ---
 
-# 10. Inventory Efficiency Metrics
+# 8 Offline Statistics
 
-Measures how well inventory is managed:
+All statistics must be computed locally when offline.
 
-- Stockout frequency
-- Overstock frequency
-- Average idle stock time
-- Expiration waste ratio
+Behavior:
 
----
+- Events are stored locally.
+- Aggregations are recalculated incrementally.
+- UI displays cached values.
+- Sync merges and reconciles differences.
 
-# 11. Purchase Session Analytics (NEW)
-
-Supports Store Scan Mode evolution.
-
-Metrics:
-
-- Items scanned per session
-- Session duration
-- Store efficiency (items/minute)
-- PendingPlacement ratio
-- Completion delay (purchase → placement)
+Offline statistics must match server output after synchronization.
 
 ---
 
-# 12. Pending Placement Analytics (NEW)
-
-Tracks the gap between purchase and storage:
-
-- Average pending time
-- Bottlenecks in organization
-- Items frequently left unplaced
-- Location assignment delays
-
----
-
-# 13. Event-Based Computation
-
-All statistics MUST be derived from:
-
-- Domain events
-- Sync events
-- Shopping events
-- Purchase session events
-
-Rules:
-
-- No direct database mutations for analytics
-- No loss of event history
-- Recomputable at any time
-
----
-
-# 14. Offline Considerations
-
-- Statistics are cached locally
-- Updates are incremental
-- Full recomputation occurs after sync
-- Offline mode uses approximate values
-
----
-
-# 15. Performance Requirements
-
-- Aggregations must be precomputed where possible
-- Real-time updates allowed for small datasets
-- Large datasets must use batch processing
-- UI must remain responsive under heavy computation
-
----
-
-# 16. Visualization Layer (Future-ready)
-
-Statistics module is designed to support:
-
-- Charts
-- Time series graphs
-- Category breakdowns
-- Heatmaps (future)
-- Trend analysis dashboards
-
----
-
-# 17. Integration Points
-
-- 16-products.md → consumption data
-- 17-shopping-list.md → behavior patterns
-- 11-sync-engine.md → event streams
-- 10-offline-first.md → local caching
-- 18-statistics.md → analytics engine
-- 28-evolution-log.md → Purchase Session metrics
-
----
-
-# 18. Statistics Principles
-
-- Everything is event-driven
-- No mutable historical data
-- Offline data is approximate but consistent
-- Performance is achieved via pre-aggregation
-- Insights are derived, not stored manually
-- Purchase Session metrics are first-class citizens
-- PendingPlacement is a measurable system state
-
----
-
+# End of Part 1
