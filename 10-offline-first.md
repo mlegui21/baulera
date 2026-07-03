@@ -277,6 +277,22 @@ Examples
 - First authentication
 - Initial household download
 
+## Offline Scan Resolution Priority
+
+When scanning barcodes in offline mode, the system MUST resolve products in the following order:
+
+1. Local product database (highest priority)
+2. Local cached external metadata (if available)
+3. Offline fallback product creation (minimal entity)
+
+External API resolution (e.g. OpenFoodFacts) is NOT available offline and must be deferred.
+
+---
+
+## Offline Scan Principle
+
+Barcode scanning MUST never depend on external services to resolve existing products already stored locally.
+
 ---
 
 # 10 Data Availability
