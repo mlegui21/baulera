@@ -4,9 +4,9 @@ Aplicación móvil web para compartir el inventario de supermercado entre bauler
 
 ## Estado del proyecto
 
-Código de la aplicación y configuración de publicación completos en este repositorio. Base de datos aplicada en Supabase, proyecto `dgbqhlcpztojkzcqkeff`, migración `20260917134130_baulera_offline_fresh_start`. Publicación en Cloudflare pendiente.
+Código de la aplicación y configuración de publicación completos en este repositorio. Base de datos aplicada en Supabase, proyecto `dgbqhlcpztojkzcqkeff`, migración `20260917134130_baulera_offline_fresh_start`. Publicada en https://la-baulera.mlegui21.workers.dev el 17/09/2026.
 
-Los documentos de diseño anteriores se conservan como antecedentes; este README y el código describen la implementación actual.
+Este README y el código describen la implementación actual.
 
 ## Funciones
 
@@ -39,8 +39,9 @@ Validación realizada: 14 pruebas unitarias y 2 pruebas de navegador, compilaci�
 
 El estado, los miembros y los recibos están en el esquema `private`, con RLS y sin acceso directo de clientes. La aplicación utiliza únicamente las funciones públicas `baulera_read` y `baulera_commit`, que comprueban la membresía. Los correos autorizados se configuraron directamente en Supabase y no se incluyen en este repositorio público.
 
-## Publicación pendiente
+## Publicación
 
-`wrangler.jsonc` configura los archivos estáticos de `dist` en Cloudflare Workers. Después de autorizar la cuenta y ejecutar la compilación, publicar con Wrangler. Configurar la URL definitiva y las redirecciones en Supabase Auth, comprobar el envío de confirmaciones y probar el acceso de ambos integrantes.
+`wrangler.jsonc` configura los archivos estáticos de `dist` en Cloudflare Workers. La publicación inicial se realizó mediante la API oficial de Cloudflare usando los archivos de producción. Se verificaron la pantalla de acceso sin errores de JavaScript, el manifiesto, el service worker y los encabezados de seguridad. URL: https://la-baulera.mlegui21.workers.dev. Las futuras publicaciones pueden hacerse con Wrangler tras autorizarlo. Pendiente: configurar/verificar la URL y redirecciones en Supabase Auth, el envío de confirmaciones, el acceso de ambos integrantes y la reapertura sin conexión en un iPhone físico.
 
 Para el primer uso se necesita conexión para ingresar y descargar la aplicación. Antes de bajar a la baulera, abrirla y comprobar que indique que está sincronizada. Los cambios pendientes permanecen en ese dispositivo hasta sincronizar: no borrar los datos del navegador mientras haya operaciones pendientes. La aplicación ofrece exportación local como respaldo.
+
