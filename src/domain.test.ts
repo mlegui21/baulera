@@ -32,6 +32,23 @@ function receive(id: string, brand: string, g = "Arroz"): Operation {
   });
 }
 describe("Reglas de la despensa", () => {
+  it("edita un lote completo conservando su identidad y los otros lotes", () => {
+    const s = reduce(reduce(empty(), receive("a", "Gallo")), receive("b", "Molinos"));
+    const result = reduce(s, op({ type: "edit", id: "a", lot: { ...s.lots[0], id: "ignored", group: "Quinoa", brand: "Otra", size: "1 kg", category: "Nueva", shelf: "Estante 8", expiry: "2028-03-04", b: 0, h: 2 } }));
+    expect(result.lots[0]).toMatchObject({ id: "a", group: "Quinoa", brand: "Otra", size: "1 kg", category: "Nueva", shelf: "Estante 8", expiry: "2028-03-04", b: 0, h: 2 });
+    expect(result.lots[1]).toEqual(s.lots[1]);
+    expect(result.shopping).toEqual([{group: "Quinoa", source: "auto", bought: false}]);
+    expect(result.shelves).toContain("Estante 8");
+    expect(s.lots[0].group).toBe("Arroz");
+  });
+  it("reconcilia reposición al renombrar y reponer un lote editado", () => {
+    let s = reduce(empty(), receive("a", "Gallo"));
+    s = reduce(s, op({ type: "transfer", id: "a", qty: 1 }));
+    s = reduce(s, op({ type: "edit", id: "a", lot: { ...s.lots[0], group: "Quinoa", b: 2 } }));
+    expect(s.shopping).toEqual([]);
+    expect(s.lots[0].h).toBe(1);
+    expect(() => reduce(s, op({type: "edit", id: "a", lot: {...s.lots[0], b: -1}}))).toThrow();
+  });
   it("repone solo al agotarse la baulera, agrupando marcas aunque queden envases en casa", () => {
     let s = reduce(
       reduce(empty(), receive("a", "Gallo")),

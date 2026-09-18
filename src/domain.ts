@@ -24,6 +24,7 @@ export type Inventory = {
 };
 export type Action =
   | { type: "receive"; lot: Lot }
+  | { type: "edit"; id: string; lot: Lot }
   | { type: "transfer" | "consume"; id: string; qty: number }
   | { type: "move"; id: string; shelf: string }
   | { type: "adjust"; id: string; place: "b" | "h"; qty: number }
@@ -91,6 +92,25 @@ export function reduce(before: Inventory, op: Operation): Inventory {
     s.lots.push(l);
     if (!s.shelves.includes(l.shelf)) s.shelves.push(l.shelf);
     s.shopping = s.shopping.filter((x) => key(x.group) !== key(l.group));
+  } else if (a.type === "edit") {
+    const index = s.lots.findIndex((l) => l.id === a.id);
+    if (index < 0) throw Error("No se encontró el lote.");
+    const previous = s.lots[index];
+    const l = structuredClone(a.lot);
+    l.id = previous.id;
+    for (const field of ["group", "brand", "size", "shelf", "category"] as const) l[field] = text(l[field]);
+    l.b = quantity(l.b);
+    l.h = quantity(l.h);
+    if (l.expiry && !/^\d{4}-\d{2}(-\d{2})?$/.test(l.expiry)) throw Error("Revisá el vencimiento.");
+    l.group = s.lots.find((x) => x.id !== l.id && key(x.group) === key(l.group))?.group || l.group;
+    s.lots[index] = l;
+    l.shelf = s.shelves.find((x) => key(x) === key(l.shelf)) || l.shelf;
+    if (!s.shelves.includes(l.shelf)) s.shelves.push(l.shelf);
+    for (const group of new Set([previous.group, l.group])) {
+      const exists = s.lots.some((x) => key(x.group) === key(group));
+      if (exists && total(s, group, "b") === 0) addShop(s, group, "auto");
+      else s.shopping = s.shopping.filter((x) => x.source !== "auto" || key(x.group) !== key(group));
+    }
   } else if (a.type === "shop") addShop(s, text(a.group), "manual");
   else if (a.type === "shelf") {
     const name = text(a.name);

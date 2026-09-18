@@ -107,7 +107,21 @@ test("guarda sin red, reabre, repone por grupo, sincroniza y consume en casa", a
     await page.getByRole("button", { name: "Guardar", exact: true }).click();
     await expect(page.getByRole("dialog")).not.toBeVisible();
   }
-  await expect(page.getByText("2 envases", { exact: true })).toBeVisible();
+  await expect(page.locator(".category")).toHaveText("Almacén");
+  await expect(page.getByText("2 envases", {exact:true})).toHaveCount(0);
+  await page.getByRole("button", {name:/Detalles/}).first().click();
+  await page.locator("#detail-mode").selectOption("edit");
+  await expect(page.getByRole("heading", {name:"Editar producto", exact:true})).toBeVisible();
+  await page.getByLabel("Categoría", {exact:true}).fill("Cereales");
+  await page.getByLabel("Marca", {exact:true}).fill("Gallo editado");
+  await page.getByRole("button", {name:"Guardar", exact:true}).click();
+  await expect(page.getByRole("dialog")).not.toBeVisible();
+  await page.getByLabel("Buscar productos").fill("Cereales");
+  await expect(page.getByRole("heading", {name:"Arroz", exact:true})).toBeVisible();
+  await expect(page.locator(".category")).toContainText("Cereales");
+  await page.getByLabel("Buscar productos").fill("no-existe");
+  await expect(page.getByRole("heading", {name:"Arroz", exact:true})).toHaveCount(0);
+  await page.getByLabel("Buscar productos").fill("");
   for (let i = 0; i < 2; i++) {
     await page
       .getByRole("button", { name: "Llevar a casa", exact: true })
@@ -133,7 +147,7 @@ test("guarda sin red, reabre, repone por grupo, sincroniza y consume en casa", a
           "Offline cold navigation needs physical Safari verification; Playwright service worker support is Chromium-only.",
       });
   await expect(
-    page.getByText("4 cambios guardados en este teléfono"),
+    page.getByText("5 cambios guardados en este teléfono"),
   ).toBeVisible();
   await page.getByRole("button", { name: /Compras/ }).click();
   await expect(
@@ -152,7 +166,9 @@ test("guarda sin red, reabre, repone por grupo, sincroniza y consume en casa", a
     .first()
     .click();
   await page.getByRole("button", { name: "Guardar", exact: true }).click();
-  await expect(page.getByText("1 envases", { exact: true })).toBeVisible();
+  await expect(page.getByRole("dialog")).not.toBeVisible();
+  await expect(page.locator(".lot strong")).toHaveText(["× 1"]);
+  expect(server.document.lots.find((l: any) => l.brand === "Gallo editado").category).toBe("Cereales");
   await expect(page.locator("body")).toHaveJSProperty(
     "scrollWidth",
     await page.evaluate(() => innerWidth),

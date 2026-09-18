@@ -418,3 +418,5 @@ dialog .row {
     transition: background 0.15s;
   }
 }
+
+.category { font-size: 13px; color: var(--accent); text-align: right; max-width: 48%; overflow-wrap: anywhere; }

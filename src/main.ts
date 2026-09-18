@@ -222,7 +222,7 @@ function listHTML() {
   if (tab === "compras")
     return (
       s.shopping
-        .filter((x) => key(x.group).includes(key(search)))
+        .filter((x) => key(x.group).includes(key(search)) || s.lots.some(l => key(l.group) === key(x.group) && key(l.category).includes(key(search))))
         .map(
           (x) =>
             `<article class="product"><div class="row"><h2>${esc(x.group)}</h2><span class="pill">${x.bought ? "Comprado" : x.source === "auto" ? "Reposición" : "Manual"}</span></div><p class="meta">${total(s, x.group, "b") === 0 ? "Sin stock en baulera" : total(s, x.group, "b") + " en baulera"} · ${total(s, x.group, "h")} en casa</p><div class="actions"><button data-cmd="${x.bought ? "receive" : "bought"}" data-group="${esc(x.group)}" class="${x.bought ? "primary" : ""}">${icon(x.bought ? "archive" : "check")}${x.bought ? "Guardar compra" : "Marcar comprado"}</button><button data-cmd="remove-shop" data-group="${esc(x.group)}" class="quiet">Quitar</button>${x.bought ? `<button data-cmd="bought" data-group="${esc(x.group)}" class="quiet">Desmarcar</button>` : ""}</div></article>`,
@@ -255,7 +255,7 @@ function listHTML() {
         const rows = s.lots
           .filter((l) => l.group === g && (filter === "empty" || l[p] > 0))
           .sort((a, b) => expiryEnd(a.expiry) - expiryEnd(b.expiry));
-        return `<article class="product"><div class="row"><h2>${esc(g)}</h2><span class="total">${total(s, g, p)} envases</span></div>${rows.map((l, i) => `<div class="lot"><div class="row"><span>${esc(l.brand)} <span class="muted">· ${esc(l.size)}</span></span><strong>× ${l[p]}</strong></div><p class="meta">${tab === "baulera" ? esc(l.shelf) + " · " : ""}${l.expiry ? "Vence " + expiryLabel(l.expiry) : "Sin vencimiento informado"}</p>${l.expiry ? `<span class="date ${expiryEnd(l.expiry) < now ? "expired" : ""}">${expiryEnd(l.expiry) < now ? "Vencimiento pasado" : expiryEnd(l.expiry) <= soon ? "Vence dentro de 30 días" : i === 0 ? "Usar primero" : ""}</span>` : ""}<div class="actions">${l[p] > 0 ? `<button data-cmd="${p === "b" ? "transfer" : "consume"}" data-id="${l.id}">${icon(p === "b" ? "arrow-right" : "check")}${p === "b" ? "Llevar a casa" : "Se terminó"}</button>` : ""}<button class="quiet" data-cmd="detail" data-id="${l.id}">Detalles ${icon("chevron-right")}</button></div></div>`).join("")}</article>`;
+        return `<article class="product"><div class="row"><h2>${esc(g)}</h2><span class="category">${esc([...new Set(rows.map(l => l.category || "Sin categoría"))].join(" · "))}</span></div>${rows.map((l, i) => `<div class="lot"><div class="row"><span>${esc(l.brand)} <span class="muted">· ${esc(l.size)}</span></span><strong>× ${l[p]}</strong></div><p class="meta">${tab === "baulera" ? esc(l.shelf) + " · " : ""}${l.expiry ? "Vence " + expiryLabel(l.expiry) : "Sin vencimiento informado"}</p>${l.expiry ? `<span class="date ${expiryEnd(l.expiry) < now ? "expired" : ""}">${expiryEnd(l.expiry) < now ? "Vencimiento pasado" : expiryEnd(l.expiry) <= soon ? "Vence dentro de 30 días" : i === 0 ? "Usar primero" : ""}</span>` : ""}<div class="actions">${l[p] > 0 ? `<button data-cmd="${p === "b" ? "transfer" : "consume"}" data-id="${l.id}">${icon(p === "b" ? "arrow-right" : "check")}${p === "b" ? "Llevar a casa" : "Se terminó"}</button>` : ""}<button class="quiet" data-cmd="detail" data-id="${l.id}">Detalles ${icon("chevron-right")}</button></div></div>`).join("")}</article>`;
       })
       .join("") ||
     emptyHTML(
@@ -313,11 +313,37 @@ function openForm(
 }
 const field = (label: string, name: string, value = "", extra = "") =>
   `<label class="field">${label}<input name="${name}" value="${esc(value)}" ${extra}></label>`;
+function categoryField(value: string) {
+  const categories = [...new Set(["Almacén", "Bebidas sin alcohol", "Bebidas con alcohol", "Limpieza", "Perfumería", ...view(local!).lots.map(l => l.category)].filter(Boolean))].sort((a,b) => a.localeCompare(b));
+  return field("Categoría", "category", value, 'required maxlength="120" list="categories"') + '<datalist id="categories">' + categories.map(c => '<option value="' + esc(c) + '">').join('') + '</datalist>';
+}
+function editLot(l: Lot) {
+  const s = view(local!);
+  const month = l.expiry.length === 7;
+  openForm("Editar producto",
+    field("Producto / grupo de reposición", "group", l.group, 'required maxlength="120"') +
+    '<p class="hint">Se modifica esta marca y presentación. Los demás lotes se conservan.</p><div class="form-grid">' +
+    field("Marca", "brand", l.brand, 'required maxlength="120"') +
+    field("Presentación", "size", l.size, 'required maxlength="120"') +
+    categoryField(l.category) +
+    field("Cantidad en baulera", "b", String(l.b), 'type="number" min="0" max="9999" step="1" required') +
+    field("Cantidad en casa", "h", String(l.h), 'type="number" min="0" max="9999" step="1" required') + '</div>' +
+    '<label class="field">Precisión del vencimiento<select id="precision"><option value="date"' + (!month ? ' selected' : '') + '>Día, mes y año</option><option value="month"' + (month ? ' selected' : '') + '>Mes y año</option></select></label>' +
+    field("Vencimiento · opcional", "expiry", l.expiry, 'type="' + (month ? 'month' : 'date') + '"') +
+    field("Estante", "shelf", l.shelf, 'required maxlength="120" list="shelves"') + '<datalist id="shelves">' + s.shelves.map(x => '<option value="' + esc(x) + '">').join('') + '</datalist>',
+    f => act({type:"edit", id:l.id, lot:{id:l.id,group:String(f.get("group")),brand:String(f.get("brand")),size:String(f.get("size")),category:String(f.get("category")),expiry:String(f.get("expiry")),shelf:String(f.get("shelf")),b:Number(f.get("b")),h:Number(f.get("h"))}}, "Editar producto: " + l.group + " · " + l.brand));
+  modal.querySelector("#precision")!.addEventListener("change", e => {
+    const input = modal.querySelector<HTMLInputElement>("[name=expiry]")!;
+    const previous = input.value;
+    input.type = (e.target as HTMLSelectElement).value;
+    input.value = input.type === "month" ? previous.slice(0, 7) : previous.length === 10 ? previous : "";
+  });
+}
 function receive(group = "") {
   const s = view(local!);
   openForm(
     "Guardar en la baulera",
-    `${field("Producto / grupo de reposición", "group", group, 'required maxlength="120" list="groups"')}<datalist id="groups">${[...new Set([...s.lots.map((l) => l.group), ...s.shopping.map((x) => x.group)])].map((g) => `<option value="${esc(g)}">`).join("")}</datalist><p class="hint">Usá “Arroz” para agrupar todas sus marcas y presentaciones.</p><div class="form-grid">${field("Marca", "brand", "", 'required maxlength="120"')}${field("Presentación", "size", "", 'required maxlength="120" placeholder="500 g"')}${field("Envases", "qty", "1", 'type="number" min="1" max="9999" step="1" required')}${field("Categoría", "category", "Almacén", 'maxlength="120"')}</div><label class="field">Precisión del vencimiento<select id="precision"><option value="date">Día, mes y año</option><option value="month">Mes y año</option></select></label>${field("Vencimiento · opcional", "expiry", "", 'type="date"')}${field("Estante", "shelf", s.shelves[0], 'required maxlength="120" list="shelves"')}<datalist id="shelves">${s.shelves.map((x) => `<option value="${esc(x)}">`).join("")}</datalist>`,
+    `${field("Producto / grupo de reposición", "group", group, 'required maxlength="120" list="groups"')}<datalist id="groups">${[...new Set([...s.lots.map((l) => l.group), ...s.shopping.map((x) => x.group)])].map((g) => `<option value="${esc(g)}">`).join("")}</datalist><p class="hint">Usá “Arroz” para agrupar todas sus marcas y presentaciones.</p><div class="form-grid">${field("Marca", "brand", "", 'required maxlength="120"')}${field("Presentación", "size", "", 'required maxlength="120" placeholder="500 g"')}${field("Cantidad", "qty", "1", 'type="number" min="1" max="9999" step="1" required')}${categoryField("Almacén")}</div><label class="field">Precisión del vencimiento<select id="precision"><option value="date">Día, mes y año</option><option value="month">Mes y año</option></select></label>${field("Vencimiento · opcional", "expiry", "", 'type="date"')}${field("Estante", "shelf", s.shelves[0], 'required maxlength="120" list="shelves"')}<datalist id="shelves">${s.shelves.map((x) => `<option value="${esc(x)}">`).join("")}</datalist>`,
     (f) =>
       act(
         {
@@ -351,7 +377,7 @@ function lotById(id: string) {
 function details(l: Lot) {
   openForm(
     `${esc(l.group)} · ${esc(l.brand)}`,
-    `<p class="meta">${esc(l.size)} · ${expiryLabel(l.expiry)}</p><p>${l.b} en baulera · ${l.h} en casa</p><label class="field">Acción<select name="mode" id="detail-mode"><option value="move">Mover de estante</option><option value="b">Corregir cantidad en baulera</option><option value="h">Corregir cantidad en casa</option></select></label>${field("Estante", "shelf", l.shelf, 'maxlength="120" required')}${field("Cantidad real de envases", "qty", String(l.b), 'type="number" min="0" max="9999" step="1" required')}`,
+    `<p class="meta">${esc(l.size)} · ${expiryLabel(l.expiry)}</p><p>${l.b} en baulera · ${l.h} en casa</p><label class="field">Acción<select name="mode" id="detail-mode"><option value="edit">Editar producto completo</option><option value="move" selected>Mover de estante</option><option value="b">Corregir cantidad en baulera</option><option value="h">Corregir cantidad en casa</option></select></label>${field("Estante", "shelf", l.shelf, 'maxlength="120" required')}${field("Cantidad", "qty", String(l.b), 'type="number" min="0" max="9999" step="1" required')}`,
     (f) =>
       f.get("mode") === "move"
         ? act(
@@ -373,6 +399,7 @@ function details(l: Lot) {
   qty.closest("label")!.hidden = true;
   modal.querySelector("#detail-mode")!.addEventListener("change", (e) => {
     const mode = (e.target as HTMLSelectElement).value;
+    if (mode === "edit") { editLot(lotById(l.id)); return; }
     qty.closest("label")!.hidden = mode === "move";
     shelf.closest("label")!.hidden = mode !== "move";
     qty.value = String(mode === "h" ? l.h : l.b);
@@ -441,7 +468,7 @@ app.addEventListener("click", async (e) => {
       const l = lotById(id);
       openForm(
         cmd === "transfer" ? "Llevar a casa" : "Se terminó",
-        `<p>${esc(l.group)} · ${esc(l.brand)} · ${esc(l.size)}</p><p class="meta">${l.shelf} · ${expiryLabel(l.expiry)}</p>${field("Envases", "qty", "1", `type="number" min="1" max="${cmd === "transfer" ? l.b : l.h}" step="1" required`)}`,
+        `<p>${esc(l.group)} · ${esc(l.brand)} · ${esc(l.size)}</p><p class="meta">${l.shelf} · ${expiryLabel(l.expiry)}</p>${field("Cantidad", "qty", "1", `type="number" min="1" max="${cmd === "transfer" ? l.b : l.h}" step="1" required`)}`,
         (f) =>
           act(
             { type: cmd, id, qty: Number(f.get("qty")) },
@@ -683,4 +710,3 @@ async function start() {
 }
 watchRecovery(render);
 void start();
-
