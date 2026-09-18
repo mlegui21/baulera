@@ -37,12 +37,18 @@ import {
   type Lot,
   type Operation,
 } from "./domain";
+function displayName(email: string, fallback = "") {
+  const normalized = email.trim().toLowerCase();
+  if (["luz@baulera.com", "luz.prueba@baulera.invalid", "luz.eramallo@gmail.com"].includes(normalized)) return "Luz";
+  if (["marcos@baulera.com", "marcos.prueba@baulera.invalid", "mlegui21@gmail.com"].includes(normalized)) return "Marcos";
+  return fallback || normalized.split("@")[0];
+}
 const app = document.getElementById("app")!;
 const modal = document.createElement("dialog");
 document.body.append(modal);
 let local: Local | null = null,
   owner = localStorage.getItem("baulera-owner") || "",
-  actor = localStorage.getItem("baulera-actor") || "",
+  actor = displayName(localStorage.getItem("baulera-email") || "", localStorage.getItem("baulera-actor") || ""),
   tab = "baulera",
   search = "",
   filter = "all",
@@ -600,7 +606,7 @@ function renderLogin() {
       }
       const snapshot = await remote.read();
       owner = result.data.session.user.id;
-      actor = email.startsWith("luz.") ? "Luz" : email === "marcos.prueba@baulera.invalid" ? "Marcos" : email.split("@")[0];
+      actor = displayName(email);
       await lock(async () => {
         local = await read(owner);
         if (!local.ready) {
