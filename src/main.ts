@@ -17,6 +17,7 @@ import {
 } from "lucide";
 import { registerSW } from "virtual:pwa-register";
 import { supabase, remote, forOwner } from "./backend";
+import { recovering, renderRecovery, watchRecovery } from "./recovery";
 import {
   read,
   write,
@@ -124,6 +125,7 @@ async function act(action: Action, label: string) {
   }
 }
 async function synchronize() {
+  if (recovering) return;
   if (!owner || busy || !navigator.onLine) return;
   busy = true;
   renderStatus();
@@ -174,6 +176,7 @@ function renderStatus() {
   icons();
 }
 function render() {
+  if (recovering) return renderRecovery(app, renderLogin);
   if (!local?.ready) {
     renderLogin();
     return;
@@ -555,8 +558,21 @@ app.addEventListener("click", async (e) => {
   }
 });
 function renderLogin() {
-  app.innerHTML = `<div class="shell login"><header><span class="brand">${icon("archive")} LA BAULERA</span><h1>Todo en su lugar.</h1><p class="subtitle">Su despensa compartida, incluso sin señal.</p></header><main><form id="login"><label class="field">Tu correo<input name="email" type="email" required autocomplete="email"></label><label class="field">Contraseña<input name="password" type="password" required minlength="8" autocomplete="current-password"></label><button class="primary full" name="mode" value="login">Entrar</button><button class="full" name="mode" value="signup">Crear mi acceso</button><p class="hint">Acceso reservado para ustedes dos. La primera vez necesitás conexión.</p><p id="auth-message" role="alert">${esc(error)}</p></form></main></div>`;
+  app.innerHTML = `<div class="shell login"><header><span class="brand">${icon("archive")} LA BAULERA</span><h1>Todo en su lugar.</h1><p class="subtitle">Su despensa compartida, incluso sin señal.</p></header><main><form id="login"><label class="field">Tu correo<input name="email" type="email" required autocomplete="email"></label><label class="field">Contraseña<input name="password" type="password" required minlength="8" autocomplete="current-password"></label><button class="primary full" name="mode" value="login">Entrar</button><button class="full" name="mode" value="signup">Crear mi acceso</button><button type="button" id="forgot-password" class="full">Olvidé mi contraseña</button><p class="hint">Acceso reservado para ustedes dos. La primera vez necesitás conexión.</p><p id="auth-message" role="alert">${esc(error)}</p></form></main></div>`;
   icons();
+  const forgot = document.getElementById("forgot-password");
+  if (forgot) forgot.onclick = async () => {
+    const input = document.querySelector<HTMLInputElement>('#login input[name="email"]')!;
+    if (!input.reportValidity()) return;
+    const button = document.getElementById('forgot-password') as HTMLButtonElement;
+    const out = document.getElementById('auth-message')!;
+    button.disabled = true;
+    try {
+      const {error} = await supabase.auth.resetPasswordForEmail(input.value.trim().toLowerCase(), {redirectTo: location.origin + '/?recuperar=1'});
+      if (error) throw error;
+      out.textContent = 'Solicitud enviada. Si el correo tiene una cuenta, recibirás un enlace para elegir una contraseña nueva. Revisá también spam.';
+    } catch (error) {out.textContent = (error as Error).message;} finally {button.disabled = false;}
+  };
   document.getElementById("login")!.addEventListener("submit", async (e) => {
     e.preventDefault();
     const f = new FormData(e.target as HTMLFormElement),
@@ -579,12 +595,12 @@ function renderLogin() {
       if (result.error) throw result.error;
       if (!result.data.session) {
         out.textContent =
-          "Revisá tu correo para confirmar el acceso y después volvé a entrar acá.";
+          "Si es un acceso nuevo, revisá tu correo para confirmarlo. Si ya tenías cuenta, usá Entrar u Olvidé mi contraseña; crear un acceso no cambia la contraseña anterior.";
         return;
       }
       const snapshot = await remote.read();
       owner = result.data.session.user.id;
-      actor = email.startsWith("luz.") ? "Luz" : email.split("@")[0];
+      actor = email.startsWith("luz.") ? "Luz" : email === "marcos.prueba@baulera.invalid" ? "Marcos" : email.split("@")[0];
       await lock(async () => {
         local = await read(owner);
         if (!local.ready) {
@@ -659,4 +675,5 @@ async function start() {
     render();
   }
 }
+watchRecovery(render);
 void start();
